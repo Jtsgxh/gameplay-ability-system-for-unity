@@ -1,8 +1,20 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace GAS.Runtime
 {
+    /// <summary>
+    /// 技能容器，管理一个组件上的所有技能
+    /// </summary>
+    /// <remarks>
+    /// 这个容器负责：
+    /// - 技能的授予和移除
+    /// - 技能的激活、结束和取消
+    /// - 技能的生命周期管理
+    /// - 技能间的互相作用和取消逻辑
+    /// - 技能的Tick更新
+    /// </remarks>
     public class AbilityContainer
     {
         private readonly AbilitySystemComponent _owner;
@@ -16,16 +28,29 @@ namespace GAS.Runtime
 
         public void Tick()
         {
-            _cachedAbilities.AddRange(_abilities.Values);
-
-            foreach (var abilitySpec in _cachedAbilities)
+            var keys = _abilities.Keys.ToArray(); // 只复制key
+            foreach (var key in keys)
             {
-                abilitySpec.Tick();
+                if (_abilities.TryGetValue(key, out var spec)) // 防止key被删除
+                {
+                    spec.Tick();
+                }
             }
-
-            _cachedAbilities.Clear();
         }
 
+        /// <summary>
+        /// 授予组件一个新技能
+        /// </summary>
+        /// <param name="ability">要授予的技能实例</param>
+        /// <remarks>
+        /// 如果同名技能已存在，此操作会被忽略。
+        /// 授予后，技能将可以被激活和使用。
+        /// </remarks>
+        /// <example>
+        /// // 授予攻击技能
+        /// var attackAbility = new SwordAttackAbility(attackAbilityAsset);
+        /// container.GrantAbility(attackAbility);
+        /// </example>
         public void GrantAbility(AbstractAbility ability)
         {
             if (_abilities.ContainsKey(ability.Name)) return;
@@ -38,6 +63,21 @@ namespace GAS.Runtime
             RemoveAbility(ability.Name);
         }
 
+        /// <summary>
+        /// 从容器中移除指定名称的技能
+        /// </summary>
+        /// <param name="abilityName">要移除的技能名称</param>
+        /// <remarks>
+        /// 移除技能会：
+        /// 1. 立即结束该技能的所有实例
+        /// 2. 释放技能相关资源
+        /// 3. 从容器中删除技能记录
+        /// 如果技能不存在，此操作不会产生效果。
+        /// </remarks>
+        /// <example>
+        /// // 移除攻击技能
+        /// container.RemoveAbility("SwordAttack");
+        /// </example>
         public void RemoveAbility(string abilityName)
         {
             if (!_abilities.ContainsKey(abilityName)) return;
@@ -47,6 +87,33 @@ namespace GAS.Runtime
             _abilities.Remove(abilityName);
         }
 
+        /// <summary>
+        /// 尝试激活指定名称的技能
+        /// </summary>
+        /// <param name="abilityName">要激活的技能名称</param>
+        /// <param name="args">传递给技能的参数</param>
+        /// <returns>如果激活成功返回true</returns>
+        /// <remarks>
+        /// 激活流程：
+        /// 1. 检查技能是否存在
+        /// 2. 检查激活条件（冷却、资源、标签等）
+        /// 3. 激活技能
+        /// 4. 执行技能间的取消逻辑（根据CancelAbilitiesWithTags）
+        /// 
+        /// 激活失败的常见原因：
+        /// - 技能不存在
+        /// - 技能正在冷却中
+        /// - 不满足激活条件
+        /// - 技能已激活且不允许多重激活
+        /// </remarks>
+        /// <example>
+        /// // 攻击指定目标
+        /// bool success = container.TryActivateAbility("SwordAttack", enemy);
+        /// if (!success)
+        /// {
+        ///     Debug.Log("攻击技能激活失败");
+        /// }
+        /// </example>
         public bool TryActivateAbility(string abilityName, params object[] args)
         {
             if (!_abilities.ContainsKey(abilityName))
@@ -80,12 +147,40 @@ namespace GAS.Runtime
             return true;
         }
 
+        /// <summary>
+        /// 正常结束指定名称的技能
+        /// </summary>
+        /// <param name="abilityName">要结束的技能名称</param>
+        /// <remarks>
+        /// 正常结束会触发技能的结束逻辑，包括清理状态、触发结束事件等。
+        /// 如果技能不存在或没有激活，此操作不会产生效果。
+        /// </remarks>
+        /// <example>
+        /// // 手动结束技能
+        /// container.EndAbility("ChannelingSpell");
+        /// </example>
         public void EndAbility(string abilityName)
         {
             if (!_abilities.ContainsKey(abilityName)) return;
             _abilities[abilityName].TryEndAbility();
         }
 
+        /// <summary>
+        /// 取消指定名称的技能
+        /// </summary>
+        /// <param name="abilityName">要取消的技能名称</param>
+        /// <remarks>
+        /// 取消与结束不同，取消是强制中断，可能不会触发正常的结束逻辑。
+        /// 常用于打断、眩眤等情况下强制停止技能。
+        /// 如果技能不存在或没有激活，此操作不会产生效果。
+        /// </remarks>
+        /// <example>
+        /// // 当角色被眩眤时取消正在释放的技能
+        /// if (IsStunned)
+        /// {
+        ///     container.CancelAbility("ChannelingSpell");
+        /// }
+        /// </example>
         public void CancelAbility(string abilityName)
         {
             if (!_abilities.ContainsKey(abilityName)) return;

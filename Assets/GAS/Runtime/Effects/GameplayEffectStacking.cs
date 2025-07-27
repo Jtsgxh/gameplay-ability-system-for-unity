@@ -70,7 +70,7 @@ namespace GAS.Runtime
         public void SetStackingCodeName(string stackingCodeName)
         {
             this.stackingCodeName = stackingCodeName;
-            this.stackingHashCode = stackingCodeName?.GetHashCode() ?? 0; // 兼容旧的SO数据
+            this.stackingHashCode = !string.IsNullOrEmpty(stackingCodeName) ? StringHashUtil.GetStableHashCode(stackingCodeName) : 0; // 兼容旧的SO数据
         }
 
         public void SetStackingHashCode(int stackingHashCode)

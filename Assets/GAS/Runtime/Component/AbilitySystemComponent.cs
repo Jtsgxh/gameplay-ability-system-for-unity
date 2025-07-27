@@ -70,6 +70,25 @@ namespace GAS.Runtime
             preset = ascPreset;
         }
 
+        /// <summary>
+        /// 初始化技能系统组件，设置基础数据和能力
+        /// </summary>
+        /// <param name="baseTags">基础固定标签数组，这些标签将永久存在于该组件上</param>
+        /// <param name="attrSetTypes">属性集类型数组，指定该组件拥有的属性集类型</param>
+        /// <param name="baseAbilities">基础技能数组，这些技能将被自动授予给该组件</param>
+        /// <param name="level">组件的初始等级</param>
+        /// <remarks>
+        /// 这是技能系统组件的主要初始化方法，通常在游戏对象创建后立即调用。
+        /// 所有参数都可以为null，在这种情况下将跳过相应的初始化步骤。
+        /// </remarks>
+        /// <example>
+        /// // 初始化一个攻击型角色
+        /// var tags = new GameplayTag[] { new GameplayTag("Character.Warrior") };
+        /// var attrTypes = new Type[] { typeof(HealthAttributeSet), typeof(CombatAttributeSet) };
+        /// var abilities = new AbilityAsset[] { swordAttackAbility, shieldBlockAbility };
+        /// 
+        /// abilitySystemComponent.Init(tags, attrTypes, abilities, 1);
+        /// </example>
         public void Init(GameplayTag[] baseTags, Type[] attrSetTypes, AbilityAsset[] baseAbilities, int level)
         {
             Prepare();
@@ -172,6 +191,26 @@ namespace GAS.Runtime
             return target.AddGameplayEffect(this, gameplayEffectSpec);
         }
 
+        /// <summary>
+        /// 对目标应用游戏效果
+        /// </summary>
+        /// <param name="gameplayEffect">要应用的游戏效果</param>
+        /// <param name="target">效果作用的目标组件</param>
+        /// <returns>创建的效果实例，如果应用失败则返回null</returns>
+        /// <remarks>
+        /// 这是应用效果的主要方法。效果将从当前组件发出，作用于目标组件。
+        /// 效果的等级将默认为1，如需指定等级请使用重载方法。
+        /// </remarks>
+        /// <example>
+        /// // 对敌人应用伤害效果
+        /// var damageEffect = damageGameplayEffect;
+        /// var effectSpec = attacker.ApplyGameplayEffectTo(damageEffect, enemy);
+        /// 
+        /// if (effectSpec != null)
+        /// {
+        ///     Debug.Log($"伤害效果已应用: {effectSpec.GameplayEffect.GameplayEffectName}");
+        /// }
+        /// </example>
         public GameplayEffectSpec ApplyGameplayEffectTo(GameplayEffect gameplayEffect, AbilitySystemComponent target)
         {
             if (gameplayEffect == null)
@@ -207,6 +246,20 @@ namespace GAS.Runtime
             return ApplyGameplayEffectTo(gameplayEffectSpec, this);
         }
 
+        /// <summary>
+        /// 对自身应用游戏效果
+        /// </summary>
+        /// <param name="gameplayEffect">要应用的游戏效果</param>
+        /// <returns>创建的效果实例，如果应用失败则返回null</returns>
+        /// <remarks>
+        /// 这是ApplyGameplayEffectTo的便捷方法，目标为自身。
+        /// 常用于自我增益、恢复或状态改变效果。
+        /// </remarks>
+        /// <example>
+        /// // 使用恢复药水
+        /// var healingPotion = healingGameplayEffect;
+        /// var effectSpec = player.ApplyGameplayEffectToSelf(healingPotion);
+        /// </example>
         public GameplayEffectSpec ApplyGameplayEffectToSelf(GameplayEffect gameplayEffect)
         {
             return ApplyGameplayEffectTo(gameplayEffect, this);
@@ -217,12 +270,44 @@ namespace GAS.Runtime
             GameplayEffectContainer.RemoveGameplayEffectSpec(gameplayEffectSpec);
         }
 
+        /// <summary>
+        /// 授予组件一个新技能
+        /// </summary>
+        /// <param name="ability">要授予的技能实例</param>
+        /// <returns>创建的技能规格实例</returns>
+        /// <remarks>
+        /// 授予技能后，该技能将可以被激活和使用。
+        /// 如果同名技能已存在，则不会重复授予。
+        /// </remarks>
+        /// <example>
+        /// // 授予攻击技能
+        /// var attackAbility = new SwordAttackAbility(attackAbilityAsset);
+        /// var abilitySpec = component.GrantAbility(attackAbility);
+        /// 
+        /// // 现在可以激活这个技能
+        /// component.TryActivateAbility("SwordAttack");
+        /// </example>
         public AbilitySpec GrantAbility(AbstractAbility ability)
         {
             AbilityContainer.GrantAbility(ability);
             return AbilityContainer.AbilitySpecs()[ability.Name];
         }
 
+        /// <summary>
+        /// 从组件中移除指定名称的技能
+        /// </summary>
+        /// <param name="abilityName">要移除的技能名称</param>
+        /// <remarks>
+        /// 移除技能会立即结束该技能的所有实例，并从技能列表中删除。
+        /// 如果技能不存在，此操作不会产生任何效果。
+        /// </remarks>
+        /// <example>
+        /// // 移除攻击技能
+        /// component.RemoveAbility("SwordAttack");
+        /// 
+        /// // 现在无法再激活这个技能
+        /// bool success = component.TryActivateAbility("SwordAttack"); // 返回false
+        /// </example>
         public void RemoveAbility(string abilityName)
         {
             AbilityContainer.RemoveAbility(abilityName);
@@ -240,12 +325,48 @@ namespace GAS.Runtime
             return value;
         }
 
+        /// <summary>
+        /// 获取指定属性的当前值（包含所有修饰符效果）
+        /// </summary>
+        /// <param name="setName">属性集名称</param>
+        /// <param name="attributeShortName">属性短名称</param>
+        /// <returns>属性的当前值，如果属性不存在则返回null</returns>
+        /// <remarks>
+        /// 当前值是经过所有GameplayEffect修饰符计算后的最终值。
+        /// 这是游戏中实际使用的数值，包括临时增益、减益等效果。
+        /// </remarks>
+        /// <example>
+        /// // 获取角色当前生命值
+        /// float? currentHealth = component.GetAttributeCurrentValue("Health", "CurrentHealth");
+        /// if (currentHealth.HasValue)
+        /// {
+        ///     Debug.Log($"当前生命值: {currentHealth.Value}");
+        /// }
+        /// </example>
         public float? GetAttributeCurrentValue(string setName, string attributeShortName)
         {
             var value = AttributeSetContainer.GetAttributeCurrentValue(setName, attributeShortName);
             return value;
         }
 
+        /// <summary>
+        /// 获取指定属性的基础值（不包含任何修饰符效果）
+        /// </summary>
+        /// <param name="setName">属性集名称</param>
+        /// <param name="attributeShortName">属性短名称</param>
+        /// <returns>属性的基础值，如果属性不存在则返回null</returns>
+        /// <remarks>
+        /// 基础值是属性的原始值，不受任何临时效果影响。
+        /// 通常用于显示角色的基础属性或计算百分比修饰符。
+        /// </remarks>
+        /// <example>
+        /// // 获取角色基础攻击力
+        /// float? baseAttack = component.GetAttributeBaseValue("Combat", "Attack");
+        /// if (baseAttack.HasValue)
+        /// {
+        ///     Debug.Log($"基础攻击力: {baseAttack.Value}");
+        /// }
+        /// </example>
         public float? GetAttributeBaseValue(string setName, string attributeShortName)
         {
             var value = AttributeSetContainer.GetAttributeBaseValue(setName, attributeShortName);
@@ -258,21 +379,90 @@ namespace GAS.Runtime
             GameplayEffectContainer.Tick();
         }
 
+        /// <summary>
+        /// 获取所有属性的当前值快照
+        /// </summary>
+        /// <returns>包含所有属性当前值的字典，键为"属性集名.属性名"格式</returns>
+        /// <remarks>
+        /// 返回的字典包含了组件上所有属性集中所有属性的当前值。
+        /// 常用于调试、数据保存或UI显示。
+        /// </remarks>
+        /// <example>
+        /// // 获取所有属性快照
+        /// var snapshot = component.DataSnapshot();
+        /// foreach (var kvp in snapshot)
+        /// {
+        ///     Debug.Log($"{kvp.Key}: {kvp.Value}");
+        /// }
+        /// // 输出示例: "Health.CurrentHealth: 85.5"
+        /// </example>
         public Dictionary<string, float> DataSnapshot()
         {
             return AttributeSetContainer.Snapshot();
         }
 
+        /// <summary>
+        /// 尝试激活指定名称的技能
+        /// </summary>
+        /// <param name="abilityName">要激活的技能名称</param>
+        /// <param name="args">传递给技能的参数</param>
+        /// <returns>如果激活成功返回true，否则返回false</returns>
+        /// <remarks>
+        /// 激活可能失败的原因包括：
+        /// - 技能不存在
+        /// - 技能正在冷却中
+        /// - 不满足激活条件（标签、资源等）
+        /// - 技能已经在激活状态且不允许多重激活
+        /// </remarks>
+        /// <example>
+        /// // 攻击指定目标
+        /// bool success = attacker.TryActivateAbility("SwordAttack", enemy);
+        /// if (success)
+        /// {
+        ///     Debug.Log("攻击技能激活成功");
+        /// }
+        /// else
+        /// {
+        ///     Debug.Log("攻击技能激活失败");
+        /// }
+        /// </example>
         public bool TryActivateAbility(string abilityName, params object[] args)
         {
             return AbilityContainer.TryActivateAbility(abilityName, args);
         }
 
+        /// <summary>
+        /// 尝试正常结束指定名称的技能
+        /// </summary>
+        /// <param name="abilityName">要结束的技能名称</param>
+        /// <remarks>
+        /// 正常结束技能会触发技能的结束逻辑，并清理相关状态。
+        /// 如果技能不存在或没有激活，此操作不会产生效果。
+        /// </remarks>
+        /// <example>
+        /// // 手动结束技能
+        /// component.TryEndAbility("ChannelingSpell");
+        /// </example>
         public void TryEndAbility(string abilityName)
         {
             AbilityContainer.EndAbility(abilityName);
         }
 
+        /// <summary>
+        /// 尝试取消指定名称的技能
+        /// </summary>
+        /// <param name="abilityName">要取消的技能名称</param>
+        /// <remarks>
+        /// 取消技能与结束技能不同，取消是强制中断，可能不会触发正常的结束逻辑。
+        /// 常用于打断、眩眤等情况下强制停止技能。
+        /// </remarks>
+        /// <example>
+        /// // 当角色被眩眤时取消正在释放的技能
+        /// if (IsStunned)
+        /// {
+        ///     component.TryCancelAbility("ChannelingSpell");
+        /// }
+        /// </example>
         public void TryCancelAbility(string abilityName)
         {
             AbilityContainer.CancelAbility(abilityName);

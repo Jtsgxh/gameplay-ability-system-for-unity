@@ -5,6 +5,22 @@ using UnityEngine;
 
 namespace GAS.Runtime
 {
+    /// <summary>
+    /// 游戏效果实例规格，管理单个游戏效果的运行时状态和行为
+    /// </summary>
+    /// <remarks>
+    /// GameplayEffectSpec是游戏效果系统的核心运行时组件，负责：
+    /// - 效果的生命周期管理（激活、禁用、移除）
+    /// - 效果堆叠逻辑处理
+    /// - 属性修饰符的应用和管理
+    /// - Cue效果的触发和管理
+    /// - 授予技能的管理
+    /// - 时间相关的更新（持续时间、周期执行）
+    /// - 数值计算用的属性快照
+    /// 
+    /// 每个GameplayEffectSpec对应一个实际应用到目标上的效果实例。
+    /// 即使是同一个GameplayEffect，也可以同时存在多个Spec实例。
+    /// </remarks>
     public class GameplayEffectSpec
     {
         private Dictionary<GameplayTag, float> _valueMapWithTag = new Dictionary<GameplayTag, float>();
@@ -21,6 +37,19 @@ namespace GAS.Runtime
         public event Action<int,int> onStackCountChanged;
 
         
+        /// <summary>
+        /// 初始化游戏效果实例规格
+        /// </summary>
+        /// <param name="gameplayEffect">游戏效果定义</param>
+        /// <remarks>
+        /// 初始化时从游戏效果定义复制基本属性：
+        /// - 持续时间和持续策略
+        /// - 堆叠规则
+        /// - 属性修饰符
+        /// - 为非瞬时效果创建周期计时器
+        /// 
+        /// 此时尚未与特定的源和目标绑定，需要后续调用Init()。
+        /// </remarks>
         public GameplayEffectSpec(GameplayEffect gameplayEffect)
         {
             GameplayEffect = gameplayEffect;
@@ -34,6 +63,21 @@ namespace GAS.Runtime
             }
         }
 
+        /// <summary>
+        /// 初始化效果实例的源、目标和等级信息
+        /// </summary>
+        /// <param name="source">效果源</param>
+        /// <param name="owner">效果目标/拥有者</param>
+        /// <param name="level">效果等级</param>
+        /// <remarks>
+        /// 初始化流程：
+        /// 1. 设置效果的源、目标和等级
+        /// 2. 为非瞬时效果创建周期执行效果
+        /// 3. 设置授予技能规格
+        /// 4. 捕获属性快照用于数值计算
+        /// 
+        /// 此方法通常在GameplayEffect被应用到目标时调用。
+        /// </remarks>
         public void Init(AbilitySystemComponent source, AbilitySystemComponent owner, float level = 1)
         {
             Source = source;
@@ -46,23 +90,134 @@ namespace GAS.Runtime
             }
             CaptureAttributesSnapshot();
         }
+        /// <summary>
+        /// 获取游戏效果定义
+        /// </summary>
         public GameplayEffect GameplayEffect { get; }
+        
+        /// <summary>
+        /// 获取效果激活时间
+        /// </summary>
+        /// <remarks>
+        /// 用于Time.time的时间戳，计算效果的剩余时间。
+        /// </remarks>
         public float ActivationTime { get; private set; }
+        
+        /// <summary>
+        /// 获取效果等级
+        /// </summary>
+        /// <remarks>
+        /// 效果等级影响属性修饰符的数值计算。
+        /// </remarks>
         public float Level { get; private set; }
+        
+        /// <summary>
+        /// 获取效果源组件
+        /// </summary>
+        /// <remarks>
+        /// 施放效果的AbilitySystemComponent，用于属性快照和数值计算。
+        /// </remarks>
         public AbilitySystemComponent Source { get; private set; }
+        
+        /// <summary>
+        /// 获取效果目标/拥有者组件
+        /// </summary>
+        /// <remarks>
+        /// 接受效果的AbilitySystemComponent，效果将应用到此组件上。
+        /// </remarks>
         public AbilitySystemComponent Owner { get; private set; }
+        
+        /// <summary>
+        /// 检查效果是否已被应用
+        /// </summary>
+        /// <remarks>
+        /// 应用状态表示效果已被添加到目标的效果容器中。
+        /// 与激活状态不同，应用但未激活的效果不会产生实际效果。
+        /// </remarks>
         public bool IsApplied { get; private set; }
+        
+        /// <summary>
+        /// 检查效果是否处于激活状态
+        /// </summary>
+        /// <remarks>
+        /// 激活状态的效果会实际修改属性值并产生游戏效果。
+        /// 只有满足激活条件时效果才会进入激活状态。
+        /// </remarks>
         public bool IsActive { get; private set; }
+        
+        /// <summary>
+        /// 获取周期计时器
+        /// </summary>
+        /// <remarks>
+        /// 用于管理持续效果的周期执行，瞬时效果为null。
+        /// </remarks>
         public GameplayEffectPeriodTicker PeriodTicker { get; }
+        
+        /// <summary>
+        /// 获取效果持续时间
+        /// </summary>
+        /// <remarks>
+        /// 可以通过SetDuration()动态修改，用于变长或缩短效果持续时间。
+        /// </remarks>
         public float Duration { get; private set; }
+        
+        /// <summary>
+        /// 获取效果持续策略
+        /// </summary>
+        /// <remarks>
+        /// 定义效果的时间特性：瞬时、持续或无限。
+        /// </remarks>
         public EffectsDurationPolicy DurationPolicy { get; private set; }
+        
+        /// <summary>
+        /// 获取周期执行效果实例
+        /// </summary>
+        /// <remarks>
+        /// 如果此效果有周期执行，此属性为周期执行效果的Spec实例。
+        /// </remarks>
         public GameplayEffectSpec PeriodExecution { get; private set; }
+        
+        /// <summary>
+        /// 获取属性修饰符数组
+        /// </summary>
+        /// <remarks>
+        /// 定义此效果对目标属性的修改规则。
+        /// </remarks>
         public GameplayEffectModifier[] Modifiers { get; private set; }
+        
+        /// <summary>
+        /// 获取授予技能规格数组
+        /// </summary>
+        /// <remarks>
+        /// 此效果激活时会授予目标的技能列表。
+        /// </remarks>
         public GrantedAbilitySpecFromEffect[] GrantedAbilitySpec { get; private set; }
+        
+        /// <summary>
+        /// 获取堆叠规则
+        /// </summary>
+        /// <remarks>
+        /// 定义同类效果的堆叠行为和上限。
+        /// </remarks>
         public GameplayEffectStacking Stacking { get; private set; }
 
         
+        /// <summary>
+        /// 获取源组件的属性快照
+        /// </summary>
+        /// <remarks>
+        /// 在效果初始化时捕获，用于属性修饰符的数值计算。
+        /// 确保数值计算的一致性，不受后续属性变化影响。
+        /// </remarks>
         public Dictionary<string, float> SnapshotSourceAttributes { get; private set; }
+        
+        /// <summary>
+        /// 获取目标组件的属性快照
+        /// </summary>
+        /// <remarks>
+        /// 在效果初始化时捕获，用于属性修饰符的数值计算。
+        /// 如果源和目标是同一个组件，则与源快照相同。
+        /// </remarks>
         public Dictionary<string, float> SnapshotTargetAttributes { get; private set; }
 
         /// <summary>
@@ -71,6 +226,15 @@ namespace GAS.Runtime
         public int StackCount { get; private set; } = 1;
         
 
+        /// <summary>
+        /// 计算效果的剩余持续时间
+        /// </summary>
+        /// <returns>剩余时间（秒），无限效果返回-1</returns>
+        /// <remarks>
+        /// 基于激活时间和当前时间计算剩余时间。
+        /// 如果效果是无限持续的，返回-1。
+        /// 已经过期的效果返回0。
+        /// </remarks>
         public float DurationRemaining()
         {
             if (DurationPolicy == EffectsDurationPolicy.Infinite)
@@ -79,31 +243,58 @@ namespace GAS.Runtime
             return Mathf.Max(0, Duration - (Time.time - ActivationTime));
         }
 
+        /// <summary>
+        /// 设置效果等级
+        /// </summary>
+        /// <param name="level">新的效果等级</param>
         public void SetLevel(float level)
         {
             Level = level;
         }
 
+        /// <summary>
+        /// 设置效果激活时间
+        /// </summary>
+        /// <param name="activationTime">激活时间戳</param>
         public void SetActivationTime(float activationTime)
         {
             ActivationTime = activationTime;
         }
         
+        /// <summary>
+        /// 设置效果持续时间
+        /// </summary>
+        /// <param name="duration">新的持续时间（秒）</param>
+        /// <remarks>
+        /// 常用于动态调整效果持续时间，如技能等级影响效果时长。
+        /// </remarks>
         public void SetDuration(float duration)
         {
             Duration = duration;
         }
 
+        /// <summary>
+        /// 设置效果持续策略
+        /// </summary>
+        /// <param name="durationPolicy">新的持续策略</param>
         public void SetDurationPolicy(EffectsDurationPolicy durationPolicy)
         {
             DurationPolicy = durationPolicy;
         }
 
+        /// <summary>
+        /// 设置周期执行效果
+        /// </summary>
+        /// <param name="periodExecution">周期执行效果实例</param>
         public void SetPeriodExecution(GameplayEffectSpec periodExecution)
         {
             PeriodExecution = periodExecution;
         }
 
+        /// <summary>
+        /// 设置属性修饰符数组
+        /// </summary>
+        /// <param name="modifiers">新的修饰符数组</param>
         public void SetModifiers(GameplayEffectModifier[] modifiers)
         {
             Modifiers = modifiers;
@@ -123,6 +314,14 @@ namespace GAS.Runtime
             Stacking = stacking;
         }
 
+        /// <summary>
+        /// 应用效果到目标
+        /// </summary>
+        /// <remarks>
+        /// 将效果标记为已应用，并检查是否满足激活条件。
+        /// 如果满足条件，会自动调用Activate()。
+        /// 重复调用会被忽略。
+        /// </remarks>
         public void Apply()
         {
             if (IsApplied) return;
@@ -134,6 +333,13 @@ namespace GAS.Runtime
             }
         }
 
+        /// <summary>
+        /// 取消应用效果
+        /// </summary>
+        /// <remarks>
+        /// 将效果标记为未应用，并取消激活状态。
+        /// 重复调用会被忽略。
+        /// </remarks>
         public void DisApply()
         {
             if (!IsApplied) return;
@@ -141,6 +347,17 @@ namespace GAS.Runtime
             Deactivate();
         }
 
+        /// <summary>
+        /// 激活效果
+        /// </summary>
+        /// <remarks>
+        /// 激活流程：
+        /// 1. 设置激活状态和激活时间
+        /// 2. 触发激活相关的处理逻辑
+        /// 3. 应用动态标签和移除冲突效果
+        /// 4. 激活授予技能
+        /// 重复调用会被忽略。
+        /// </remarks>
         public void Activate()
         {
             if (IsActive) return;
@@ -149,6 +366,17 @@ namespace GAS.Runtime
             TriggerOnActivation();
         }
 
+        /// <summary>
+        /// 取消激活效果
+        /// </summary>
+        /// <remarks>
+        /// 取消激活流程：
+        /// 1. 设置为非激活状态
+        /// 2. 触发取消激活相关的处理逻辑
+        /// 3. 恢复动态标签
+        /// 4. 取消激活授予技能
+        /// 重复调用会被忽略。
+        /// </remarks>
         public void Deactivate()
         {
             if (!IsActive) return;
@@ -157,6 +385,13 @@ namespace GAS.Runtime
         }
 
 
+        /// <summary>
+        /// 效果的帧更新
+        /// </summary>
+        /// <remarks>
+        /// 仅调用周期计时器的Tick，用于处理周期执行效果。
+        /// 由系统的更新循环自动调用。
+        /// </remarks>
         public void Tick()
         {
             PeriodTicker?.Tick();
@@ -294,31 +529,67 @@ namespace GAS.Runtime
             SnapshotTargetAttributes = Source == Owner ? SnapshotSourceAttributes : Owner.DataSnapshot();
         }
 
+        /// <summary>
+        /// 注册基于标签的数值映射
+        /// </summary>
+        /// <param name="tag">标签键</param>
+        /// <param name="value">数值</param>
+        /// <remarks>
+        /// 用于SetByCaller机制，允许在运行时传递数值给效果。
+        /// </remarks>
         public void RegisterValue(GameplayTag tag, float value)
         {
             _valueMapWithTag[tag] = value;
         }
 
+        /// <summary>
+        /// 注册基于名称的数值映射
+        /// </summary>
+        /// <param name="name">名称键</param>
+        /// <param name="value">数值</param>
+        /// <remarks>
+        /// 用于SetByCaller机制，允许在运行时传递数值给效果。
+        /// </remarks>
         public void RegisterValue(string name, float value)
         {
             _valueMapWithName[name] = value;
         }
 
+        /// <summary>
+        /// 注销基于标签的数值映射
+        /// </summary>
+        /// <param name="tag">要移除的标签键</param>
+        /// <returns>如果成功移除返回true</returns>
         public bool UnregisterValue(GameplayTag tag)
         {
             return _valueMapWithTag.Remove(tag);
         }
 
+        /// <summary>
+        /// 注销基于名称的数值映射
+        /// </summary>
+        /// <param name="name">要移除的名称键</param>
+        /// <returns>如果成功移除返回true</returns>
         public bool UnregisterValue(string name)
         {
             return _valueMapWithName.Remove(name);
         }
 
+        /// <summary>
+        /// 获取基于标签的映射数值
+        /// </summary>
+        /// <param name="tag">标签键</param>
+        /// <returns>数值，如果不存在则返回null</returns>
         public float? GetMapValue(GameplayTag tag)
         {
             return _valueMapWithTag.TryGetValue(tag, out var value) ? value : (float?)null;
         }
 
+        /// <summary>
+        /// 获取基于名称的映射数值
+        /// </summary>
+        /// <param name="name">名称键</param>
+        /// <returns>数值，如果不存在则返回null</returns>
         public float? GetMapValue(string name)
         {
             return _valueMapWithName.TryGetValue(name, out var value) ? value : (float?)null;
@@ -360,9 +631,16 @@ namespace GAS.Runtime
 
         #region ABOUT STACKING
         /// <summary>
-        /// 
+        /// 刷新堆叠数（增加一层）
         /// </summary>
-        /// <returns>Stack Count是否变化</returns>
+        /// <returns>如果堆叠数发生变化返回true</returns>
+        /// <remarks>
+        /// 将当前堆叠数+1，并根据堆叠规则处理以下逻辑：
+        /// - 检查是否超过堆叠上限
+        /// - 处理持续时间刷新
+        /// - 处理周期重置
+        /// - 触发溢出效果
+        /// </remarks>
         public bool RefreshStack()
         {
             var oldStackCount = StackCount;
@@ -412,6 +690,13 @@ namespace GAS.Runtime
             }
         }
 
+        /// <summary>
+        /// 刷新效果持续时间
+        /// </summary>
+        /// <remarks>
+        /// 重新设置激活时间为当前时间，相当于重置效果计时器。
+        /// 常用于堆叠效果的持续时间刷新。
+        /// </remarks>
         public void RefreshDuration()
         {
             ActivationTime = Time.time;
@@ -423,11 +708,19 @@ namespace GAS.Runtime
             onStackCountChanged?.Invoke(oldStackCount, newStackCount);
         }
         
+        /// <summary>
+        /// 注册堆叠数变化回调
+        /// </summary>
+        /// <param name="callback">回调函数，参数为(旧堆叠数, 新堆叠数)</param>
         public void RegisterOnStackCountChanged(Action<int, int> callback)
         {
             onStackCountChanged += callback;
         }
 
+        /// <summary>
+        /// 注销堆叠数变化回调
+        /// </summary>
+        /// <param name="callback">要移除的回调函数</param>
         public void UnregisterOnStackCountChanged(Action<int, int> callback)
         {
             onStackCountChanged -= callback;

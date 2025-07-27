@@ -3,6 +3,17 @@ using System.Collections.Generic;
 
 namespace GAS.Runtime
 {
+    /// <summary>
+    /// 游戏效果容器，管理一个组件上的所有游戏效果
+    /// </summary>
+    /// <remarks>
+    /// 这个容器负责：
+    /// - 游戏效果的生命周期管理（添加、移除、过期）
+    /// - 效果堆叠逻辑处理
+    /// - 效果的Tick更新
+    /// - 标签检查和过滤
+    /// - 效果间的互相作用管理
+    /// </remarks>
     public class GameplayEffectContainer
     {
         private readonly AbilitySystemComponent _owner;
@@ -16,6 +27,22 @@ namespace GAS.Runtime
 
         private event Action OnGameplayEffectContainerIsDirty;
 
+        /// <summary>
+        /// 获取当前容器中的所有游戏效果列表
+        /// </summary>
+        /// <returns>游戏效果实例列表</returns>
+        /// <remarks>
+        /// 返回的是内部列表的直接引用，请谨慎修改。
+        /// 主要用于调试、UI显示或特殊逻辑处理。
+        /// </remarks>
+        /// <example>
+        /// // 获取所有正在作用的效果
+        /// var effects = container.GameplayEffects();
+        /// foreach (var effect in effects)
+        /// {
+        ///     Debug.Log($"效果: {effect.GameplayEffect.GameplayEffectName}");
+        /// }
+        /// </example>
         public List<GameplayEffectSpec> GameplayEffects()
         {
             return _gameplayEffectSpecs;
@@ -46,6 +73,23 @@ namespace GAS.Runtime
             OnGameplayEffectContainerIsDirty -= action;
         }
 
+        /// <summary>
+        /// 移除包含指定标签的所有游戏效果
+        /// </summary>
+        /// <param name="tags">要匹配的标签集合</param>
+        /// <remarks>
+        /// 会检查效果的AssetTags和GrantedTags，只要任一类型包含指定标签就会移除。
+        /// 常用于实现“净化”、“取消增益”等机制。
+        /// 空标签集合会被忽略。
+        /// </remarks>
+        /// <example>
+        /// // 移除所有与“毒素”相关的效果
+        /// var poisonTags = new GameplayTagSet(new GameplayTag[] {
+        ///     new GameplayTag("Status.Poison"),
+        ///     new GameplayTag("Debuff.Poison")
+        /// });
+        /// container.RemoveGameplayEffectWithAnyTags(poisonTags);
+        /// </example>
         public void RemoveGameplayEffectWithAnyTags(GameplayTagSet tags)
         {
             if (tags.Empty) return;
