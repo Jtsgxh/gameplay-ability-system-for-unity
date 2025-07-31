@@ -8,12 +8,16 @@ namespace GAS.Runtime
 {
     public class CuePlaySound : GameplayCueDurational
     {
+#if UNITY_EDITOR
         [BoxGroup]
         [LabelText(GASTextDefine.CUE_SOUND_EFFECT)]
+#endif
         public AudioClip soundEffect; 
         
+#if UNITY_EDITOR
         [BoxGroup]
         [LabelText(GASTextDefine.CUE_ATTACH_TO_OWNER)]
+#endif
         public bool isAttachToOwner = true;
         
         public override GameplayCueDurationalSpec CreateSpec(GameplayCueParameters parameters)

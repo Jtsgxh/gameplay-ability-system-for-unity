@@ -9,11 +9,13 @@ namespace GAS.Runtime
     {
         protected const int WIDTH_LABEL = 70;
 
+#if UNITY_EDITOR
         [TitleGroup("Base")]
         [HorizontalGroup("Base/H1")]
         [TabGroup("Base/H1/V1", "Summary", SdfIconType.InfoSquareFill, TextColor = "#0BFFC5", Order = 1)]
         [HideLabel]
         [MultiLineProperty(10)]
+#endif
         public string Description;
 
 #if UNITY_EDITOR
@@ -41,16 +43,20 @@ namespace GAS.Runtime
         public string[] InheritanceChain => GetType().GetInheritanceChain().Reverse().ToArray();
 #endif
         // Tags
+#if UNITY_EDITOR
         [TabGroup("Base/H1/V3", "Tags", SdfIconType.TagsFill, TextColor = "#45B1FF", Order = 3)]
         [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
         [ValueDropdown("@ValueDropdownHelper.GameplayTagChoices", IsUniqueList = true, HideChildProperties = true)]
         [LabelText("RequiredTags - 持有所有标签才可触发")]
+#endif
         public GameplayTag[] RequiredTags;
 
+#if UNITY_EDITOR
         [TabGroup("Base/H1/V3", "Tags")]
         [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
         [ValueDropdown("@ValueDropdownHelper.GameplayTagChoices", IsUniqueList = true, HideChildProperties = true)]
         [LabelText("ImmunityTags - 持有任意标签不可触发")]
+#endif
         public GameplayTag[] ImmunityTags;
 
         public virtual bool Triggerable(AbilitySystemComponent owner)

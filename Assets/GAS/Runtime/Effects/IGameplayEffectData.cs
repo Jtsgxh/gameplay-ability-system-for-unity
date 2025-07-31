@@ -29,12 +29,16 @@
 
         // Modifiers
         GameplayEffectModifier[] GetModifiers();
-        ExecutionCalculation[] GetExecutions();
+        GameplayEffectExecutionCalculation[] GetExecutions();
 
         // Granted Ability
         GrantedAbilityConfig[] GetGrantedAbilities();
         
         //Stacking
         GameplayEffectStacking GetStacking();
+        
+        // Expiration Effects - 对应UE
+        GameplayEffectAsset[] GetPrematureExpirationEffects(); // 提前过期效果
+        GameplayEffectAsset[] GetRoutineExpirationEffects();   // 正常过期效果
     }
 }

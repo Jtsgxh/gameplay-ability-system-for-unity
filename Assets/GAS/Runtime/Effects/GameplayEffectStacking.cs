@@ -7,45 +7,65 @@ namespace GAS.Runtime
 {
     public enum StackingType
     {
+#if UNITY_EDITOR
         [LabelText("独立", SdfIconType.XCircleFill)]
+#endif
         None, //不会叠加，如果多次释放则每个Effect相当于单个Effect
 
+#if UNITY_EDITOR
         [LabelText("来源", SdfIconType.Magic)]
+#endif
         AggregateBySource, //目标(Target)上的每个源(Source)ASC都有一个单独的堆栈实例, 每个源(Source)可以应用堆栈中的X个GameplayEffect.
 
+#if UNITY_EDITOR
         [LabelText("目标", SdfIconType.Person)]
+#endif
         AggregateByTarget //目标(Target)上只有一个堆栈实例而不管源(Source)如何, 每个源(Source)都可以在共享堆栈限制(Shared Stack Limit)内应用堆栈.
     }
 
     public enum DurationRefreshPolicy
     {
+#if UNITY_EDITOR
         [LabelText("NeverRefresh - 不刷新Effect的持续时间", SdfIconType.XCircleFill)]
+#endif
         NeverRefresh, //不刷新Effect的持续时间
 
+#if UNITY_EDITOR
         [LabelText(
             "RefreshOnSuccessfulApplication - 每次apply成功后刷新持续时间",
             SdfIconType.HourglassTop)]
+#endif
         RefreshOnSuccessfulApplication //每次apply成功后刷新Effect的持续时间, denyOverflowApplication如果为True则多余的Apply不会刷新Duration
     }
 
     public enum PeriodResetPolicy
     {
+#if UNITY_EDITOR
         [LabelText("NeverReset - 不重置Effect的周期计时", SdfIconType.XCircleFill)]
+#endif
         NeverRefresh, //不重置Effect的周期计时
 
+#if UNITY_EDITOR
         [LabelText("ResetOnSuccessfulApplication - 每次apply成功后重置Effect的周期计时", SdfIconType.HourglassTop)]
+#endif
         ResetOnSuccessfulApplication //每次apply成功后重置Effect的周期计时
     }
 
     public enum ExpirationPolicy
     {
+#if UNITY_EDITOR
         [LabelText("ClearEntireStack - 持续时间结束时, 清除所有层数", SdfIconType.TrashFill)]
+#endif
         ClearEntireStack, //持续时间结束时,清除所有层数
 
+#if UNITY_EDITOR
         [LabelText("RemoveSingleStackAndRefreshDuration - 持续时间结束时减少一层，然后重新经历一个Duration", SdfIconType.EraserFill)]
+#endif
         RemoveSingleStackAndRefreshDuration, //持续时间结束时减少一层，然后重新经历一个Duration，一直持续到层数减为0
 
+#if UNITY_EDITOR
         [LabelText("RefreshDuration - 持续时间结束时,再次刷新Duration", SdfIconType.HourglassTop)]
+#endif
         RefreshDuration //持续时间结束时,再次刷新Duration，这相当于无限Duration，
         //TODO :可以通过调用GameplayEffectsContainer的OnStackCountChange(GameplayEffect ActiveEffect, int OldStackCount, int NewStackCount)来处理层数，
         //TODO :可以达到Duration结束时减少两层并刷新Duration这样复杂的效果。
@@ -143,19 +163,24 @@ namespace GAS.Runtime
     {
         private const int LABEL_WIDTH = 100;
 
+#if UNITY_EDITOR
         [LabelWidth(LABEL_WIDTH)]
         [VerticalGroup]
         [LabelText(GASTextDefine.LABEL_GE_STACKING_TYPE)]
         [EnumToggleButtons]
+#endif
         public StackingType stackingType;
 
+#if UNITY_EDITOR
         [LabelWidth(LABEL_WIDTH)]
         [VerticalGroup]
         [HideIf("IsNoStacking")]
         [LabelText(GASTextDefine.LABEL_GE_STACKING_CODENAME)]
         [InlineButton(@"@stackingCodeName = """"", SdfIconType.EraserFill, "")]
+#endif
         public string stackingCodeName;
 
+#if UNITY_EDITOR
         [LabelWidth(LABEL_WIDTH)]
         [VerticalGroup]
         [LabelText(GASTextDefine.LABEL_GE_STACKING_COUNT)]
@@ -163,8 +188,10 @@ namespace GAS.Runtime
         [InlineButton(@"@limitCount = int.MaxValue", SdfIconType.Hammer, "max")]
         [InlineButton(@"@limitCount = 0", SdfIconType.Hammer, "min")]
         [ValidateInput("@limitCount >= 0", "必须>=0")]
+#endif
         public int limitCount;
 
+#if UNITY_EDITOR
         [LabelWidth(LABEL_WIDTH)]
         [VerticalGroup]
         [LabelText(GASTextDefine.LABEL_GE_STACKING_DURATION_REFRESH_POLICY)]
@@ -172,37 +199,48 @@ namespace GAS.Runtime
         [InfoBox(GASTextDefine.LABEL_GE_STACKING_DENY_OVERFLOW_APPLICATION+"为True时多余的Apply不会刷新Duration", InfoMessageType.None,
             VisibleIf =
                 "@durationRefreshPolicy == DurationRefreshPolicy.RefreshOnSuccessfulApplication && denyOverflowApplication")]
+#endif
         public DurationRefreshPolicy durationRefreshPolicy;
 
+#if UNITY_EDITOR
         [LabelWidth(LABEL_WIDTH)]
         [VerticalGroup]
         [LabelText(GASTextDefine.LABEL_GE_STACKING_PERIOD_RESET_POLICY)]
         [HideIf("IsNoStacking")]
+#endif
         public PeriodResetPolicy periodResetPolicy;
 
+#if UNITY_EDITOR
         [LabelWidth(LABEL_WIDTH)]
         [VerticalGroup]
         [LabelText(GASTextDefine.LABEL_GE_STACKING_EXPIRATION_POLICY)]
         [HideIf("IsNoStacking")]
+#endif
         public ExpirationPolicy expirationPolicy;
 
         // Overflow 溢出逻辑处理
+#if UNITY_EDITOR
         [LabelWidth(LABEL_WIDTH)]
         [VerticalGroup]
         [LabelText(GASTextDefine.LABEL_GE_STACKING_DENY_OVERFLOW_APPLICATION)]
         [HideIf("@IsNoStacking() || IsNeverRefreshDuration()")]
+#endif
         public bool denyOverflowApplication;
 
+#if UNITY_EDITOR
         [VerticalGroup]
         [LabelWidth(LABEL_WIDTH)]
         [LabelText(GASTextDefine.LABEL_GE_STACKING_CLEAR_STACK_ON_OVERFLOW)]
         [ShowIf("IsDenyOverflowApplication")]
+#endif
         public bool clearStackOnOverflow;
 
+#if UNITY_EDITOR
         [VerticalGroup]
         [LabelWidth(LABEL_WIDTH)]
         [LabelText(GASTextDefine.LABEL_GE_STACKING_CLEAR_OVERFLOW_EFFECTS)]
         [HideIf("IsNoStacking")]
+#endif
         public GameplayEffectAsset[] overflowEffects;
 
         /// <summary>

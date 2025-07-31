@@ -469,7 +469,24 @@ namespace GAS.Runtime
         {
             Owner.GameplayEffectContainer.RemoveGameplayEffectWithAnyTags(GameplayEffect.TagContainer
                 .RemoveGameplayEffectsWithTags);
+            
+            // 执行 Modifier
             Owner.ApplyModFromInstantGameplayEffect(this);
+            
+            // 执行 GameplayEffectExecutionCalculation
+            if (GameplayEffect.Executions != null && GameplayEffect.Executions.Length > 0)
+            {
+                foreach (var execution in GameplayEffect.Executions)
+                {
+                    if (execution == null) continue;
+                    
+                    var executionParams = new GameplayEffectCustomExecutionParameters(Source, Owner, this, Level);
+                    var executionOutput = new GameplayEffectCustomExecutionOutput();
+                    
+                    execution.Execute(executionParams, executionOutput);
+                    execution.ApplyExecutionToTarget(executionParams, executionOutput);
+                }
+            }
             
             TriggerCueOnExecute();
         }
@@ -518,9 +535,9 @@ namespace GAS.Runtime
             // onImmunity = null;
         }
 
-        public void RemoveSelf()
+        public void RemoveSelf(bool isPrematureRemoval = true)
         {
-            Owner.GameplayEffectContainer.RemoveGameplayEffectSpec(this);
+            Owner.GameplayEffectContainer.RemoveGameplayEffectSpec(this, isPrematureRemoval);
         }
 
         private void CaptureAttributesSnapshot()
@@ -593,6 +610,46 @@ namespace GAS.Runtime
         public float? GetMapValue(string name)
         {
             return _valueMapWithName.TryGetValue(name, out var value) ? value : (float?)null;
+        }
+        
+        /// <summary>
+        /// 检查是否有基于标签的SetByCaller数值
+        /// </summary>
+        /// <param name="tag">标签键</param>
+        /// <returns>如果存在则返回true</returns>
+        public bool HasSetByCallerMagnitude(GameplayTag tag)
+        {
+            return _valueMapWithTag.ContainsKey(tag);
+        }
+        
+        /// <summary>
+        /// 检查是否有基于名称的SetByCaller数值
+        /// </summary>
+        /// <param name="name">名称键</param>
+        /// <returns>如果存在则返回true</returns>
+        public bool HasSetByCallerMagnitude(string name)
+        {
+            return _valueMapWithName.ContainsKey(name);
+        }
+        
+        /// <summary>
+        /// 获取基于标签的SetByCaller数值
+        /// </summary>
+        /// <param name="tag">标签键</param>
+        /// <returns>数值，如果不存在则返回0</returns>
+        public float GetSetByCallerMagnitude(GameplayTag tag)
+        {
+            return _valueMapWithTag.TryGetValue(tag, out var value) ? value : 0f;
+        }
+        
+        /// <summary>
+        /// 获取基于名称的SetByCaller数值
+        /// </summary>
+        /// <param name="name">名称键</param>
+        /// <returns>数值，如果不存在则返回0</returns>
+        public float GetSetByCallerMagnitude(string name)
+        {
+            return _valueMapWithName.TryGetValue(name, out var value) ? value : 0f;
         }
         
         private void TryActivateGrantedAbilities()

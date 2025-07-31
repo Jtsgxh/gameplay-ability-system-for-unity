@@ -51,7 +51,7 @@ namespace GAS.Runtime
 
         // Modifiers
         public readonly GameplayEffectModifier[] Modifiers;
-        public readonly ExecutionCalculation[] Executions; // TODO: this should be a list of execution calculations
+        public readonly GameplayEffectExecutionCalculation[] Executions;
 
         // Granted Ability
         public readonly GrantedAbilityFromEffect[] GrantedAbilities;
@@ -59,9 +59,9 @@ namespace GAS.Runtime
         //Stacking
         public readonly GameplayEffectStacking Stacking;
 
-        // TODO: Expiration Effects 
-        public readonly GameplayEffect[] PrematureExpirationEffect;
-        public readonly GameplayEffect[] RoutineExpirationEffectClasses;
+        // Expiration Effects - 对应UE中的过期效果
+        public readonly GameplayEffect[] PrematureExpirationEffects; // 提前过期（被移除、驱散等）
+        public readonly GameplayEffect[] RoutineExpirationEffects;    // 正常过期（持续时间结束）
 
         /// <summary>
         /// 创建并初始化游戏效果实例
@@ -129,6 +129,10 @@ namespace GAS.Runtime
             Executions = data.GetExecutions();
             GrantedAbilities = GetGrantedAbilities(data.GetGrantedAbilities());
             Stacking = data.GetStacking();
+            
+            // Initialize expiration effects
+            PrematureExpirationEffects = InitializeEffectArray(data.GetPrematureExpirationEffects());
+            RoutineExpirationEffects = InitializeEffectArray(data.GetRoutineExpirationEffects());
         }
 
         private static GrantedAbilityFromEffect[] GetGrantedAbilities(IEnumerable<GrantedAbilityConfig> grantedAbilities)
@@ -141,6 +145,22 @@ namespace GAS.Runtime
             }
 
             return grantedAbilityList.ToArray();
+        }
+        
+        private static GameplayEffect[] InitializeEffectArray(GameplayEffectAsset[] effectAssets)
+        {
+            if (effectAssets == null || effectAssets.Length == 0)
+                return null;
+                
+            var effectList = new List<GameplayEffect>();
+            foreach (var effectAsset in effectAssets)
+            {
+                if (effectAsset != null)
+                {
+                    effectList.Add(new GameplayEffect(effectAsset));
+                }
+            }
+            return effectList.Count > 0 ? effectList.ToArray() : null;
         }
 
         /// <summary>

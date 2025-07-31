@@ -50,11 +50,20 @@ namespace GAS.Runtime
         }
 
         private event Action OnTagIsDirty;
+        
+        /// <summary>
+        /// 标签变化时的公共事件，用于通知其他系统（如AttributeAggregator）
+        /// </summary>
+        public event Action OnTagChanged;
 
         private void TagIsDirty(GameplayTagSet tags)
         {
             Profiler.BeginSample($"{nameof(GameplayTagAggregator)}::TagIsDirty(GameplayTagSet)");
-            if (!tags.Empty) OnTagIsDirty?.Invoke();
+            if (!tags.Empty) 
+            {
+                OnTagIsDirty?.Invoke();
+                OnTagChanged?.Invoke(); // 通知其他系统标签已变化
+            }
             Profiler.EndSample();
         }
 
@@ -62,6 +71,7 @@ namespace GAS.Runtime
         {
             Profiler.BeginSample($"{nameof(GameplayTagAggregator)}::TagIsDirty(GameplayTag)");
             OnTagIsDirty?.Invoke();
+            OnTagChanged?.Invoke(); // 通知其他系统标签已变化
             Profiler.EndSample();
         }
 

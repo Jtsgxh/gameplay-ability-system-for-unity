@@ -26,13 +26,13 @@ namespace GAS.Runtime
                 // 处理STACKING
                 if (_spec.GameplayEffect.Stacking.stackingType == StackingType.None)
                 {
-                    _spec.RemoveSelf();
+                    _spec.RemoveSelf(false); // false表示正常过期
                 }
                 else
                 {
                     if (_spec.GameplayEffect.Stacking.expirationPolicy == ExpirationPolicy.ClearEntireStack)
                     {
-                        _spec.RemoveSelf();
+                        _spec.RemoveSelf(false); // false表示正常过期
                     }
                     else if (_spec.GameplayEffect.Stacking.expirationPolicy ==
                              ExpirationPolicy.RemoveSingleStackAndRefreshDuration)
@@ -44,7 +44,7 @@ namespace GAS.Runtime
                         }
                         else
                         {
-                            _spec.RemoveSelf();
+                            _spec.RemoveSelf(false); // false表示正常过期
                         }
                     }
                     else if (_spec.GameplayEffect.Stacking.expirationPolicy == ExpirationPolicy.RefreshDuration)

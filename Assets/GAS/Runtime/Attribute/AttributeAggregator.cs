@@ -83,6 +83,7 @@ namespace GAS.Runtime
         /// 注册以下事件监听：
         /// - 属性基础值变化事件
         /// - GameplayEffect容器变化事件
+        /// - 标签变化事件（用于Source/Target标签检查）
         /// </remarks>
         public void OnEnable()
         {
@@ -91,6 +92,13 @@ namespace GAS.Runtime
                 
             _processedAttribute.RegisterPostBaseValueChange(UpdateCurrentValueWhenBaseValueIsDirty);
             _owner.GameplayEffectContainer.RegisterOnGameplayEffectContainerIsDirty(RefreshModifierCache);
+            
+            // 监听标签变化，当标签变化时重新刷新Modifier缓存
+            // 因为Source/Target标签的变化可能会影响Modifier的生效状态
+            if (_owner.GameplayTagAggregator != null)
+            {
+                _owner.GameplayTagAggregator.OnTagChanged += RefreshModifierCache;
+            }
             
             // 启用时刷新一次缓存
             RefreshModifierCache();
@@ -109,6 +117,10 @@ namespace GAS.Runtime
                 
             if (_owner?.GameplayEffectContainer != null)
                 _owner.GameplayEffectContainer.UnregisterOnGameplayEffectContainerIsDirty(RefreshModifierCache);
+                
+            // 注销标签变化事件监听
+            if (_owner?.GameplayTagAggregator != null)
+                _owner.GameplayTagAggregator.OnTagChanged -= RefreshModifierCache;
                 
             // 清理依赖属性监听
             UnregisterAttributeChangedListen();
@@ -161,8 +173,12 @@ namespace GAS.Runtime
                         var modifier = geSpec.Modifiers[j];
                         if (string.Equals(modifier.AttributeName, attributeName, StringComparison.Ordinal))
                         {
-                            _modifierCache.Add(new ModifierCacheEntry(geSpec, modifier));
-                            TryRegisterAttributeChangedListen(geSpec, modifier);
+                            // 检查标签要求，只有满足条件的修饰符才会被加入缓存
+                            if (GameplayEffectModifier.ShouldApplyModifier(modifier, geSpec.Source, _owner))
+                            {
+                                _modifierCache.Add(new ModifierCacheEntry(geSpec, modifier));
+                                TryRegisterAttributeChangedListen(geSpec, modifier);
+                            }
                         }
                     }
                 }

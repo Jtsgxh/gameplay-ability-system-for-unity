@@ -3,11 +3,15 @@ using UnityEngine;
 
 namespace GAS.Runtime
 {
+#if UNITY_EDITOR
     [CreateAssetMenu(fileName = "SetByCallerFromTag", menuName = "GAS/MMC/SetByCallerFromTagModCalculation")]
+#endif
     public class SetByCallerFromTagModCalculation : ModifierMagnitudeCalculation
     {
+#if UNITY_EDITOR
         [SerializeField]
         [ValueDropdown("@ValueDropdownHelper.GameplayTagChoices", HideChildProperties = true)]
+#endif
         private GameplayTag _tag;
 
         public override float CalculateMagnitude(GameplayEffectSpec spec, float input)

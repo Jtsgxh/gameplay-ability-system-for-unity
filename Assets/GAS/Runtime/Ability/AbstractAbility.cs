@@ -39,7 +39,9 @@ namespace GAS.Runtime
             Name = DataReference.UniqueName;
             Tag = new AbilityTagContainer(
                 DataReference.AssetTags, DataReference.CancelAbilityTags, DataReference.BlockAbilityTags,
-                DataReference.ActivationOwnedTags, DataReference.ActivationRequiredTags, DataReference.ActivationBlockedTags);
+                DataReference.ActivationOwnedTags, DataReference.ActivationRequiredTags, DataReference.ActivationBlockedTags,
+                DataReference.SourceRequiredTags, DataReference.SourceBlockedTags,
+                DataReference.TargetRequiredTags, DataReference.TargetBlockedTags);
             Cooldown = DataReference.Cooldown ? new GameplayEffect(DataReference.Cooldown) : default;
             Cost = DataReference.Cost ? new GameplayEffect(DataReference.Cost) : default;
 

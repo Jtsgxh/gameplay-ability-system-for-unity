@@ -10,6 +10,7 @@ namespace GAS.Runtime
 {
     public abstract class TimelineAbilityAssetBase : AbilityAsset
     {
+#if UNITY_EDITOR
         [TitleGroup("Data")]
         [HorizontalGroup("Data/H1", 1 / 3f)]
         [TabGroup("Data/H1/V1", "Timeline", SdfIconType.ClockHistory, TextColor = "#00FF00")]
@@ -34,27 +35,42 @@ namespace GAS.Runtime
         [TabGroup("Data/H1/V1", "Timeline")]
         [LabelText(GASTextDefine.ABILITY_MANUAL_ENDABILITY)]
         [LabelWidth(100)]
+#endif
         public bool manualEndAbility;
 
+#if UNITY_EDITOR
         [HideInInspector]
+#endif
         public int FrameCount; // 能力结束时间
 
+#if UNITY_EDITOR
         [HideInInspector]
+#endif
         public List<DurationalCueTrackData> DurationalCues = new List<DurationalCueTrackData>();
 
+#if UNITY_EDITOR
         [HideInInspector]
+#endif
         public List<InstantCueTrackData> InstantCues = new List<InstantCueTrackData>();
 
+#if UNITY_EDITOR
         [HideInInspector]
+#endif
         public List<ReleaseGameplayEffectTrackData> ReleaseGameplayEffect = new List<ReleaseGameplayEffectTrackData>();
 
+#if UNITY_EDITOR
         [HideInInspector]
+#endif
         public List<BuffGameplayEffectTrackData> BuffGameplayEffects = new List<BuffGameplayEffectTrackData>();
 
+#if UNITY_EDITOR
         [HideInInspector]
+#endif
         public List<TaskMarkEventTrackData> InstantTasks = new List<TaskMarkEventTrackData>();
 
+#if UNITY_EDITOR
         [HideInInspector]
+#endif
         public List<TaskClipEventTrackData> OngoingTasks = new List<TaskClipEventTrackData>();
 
 #if UNITY_EDITOR

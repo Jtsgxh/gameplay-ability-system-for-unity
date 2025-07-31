@@ -6,20 +6,26 @@ namespace GAS.Runtime
 {
     public class CueAnimation : GameplayCueDurational
     {
+#if UNITY_EDITOR
         [BoxGroup]
         [InfoBox(GASTextDefine.CUE_ANIMATION_PATH_TIP)]
         [LabelText(GASTextDefine.CUE_ANIMATION_PATH)]
+#endif
         [SerializeField]
         private string _animatorRelativePath;
 
+#if UNITY_EDITOR
         [BoxGroup]
         [InfoBox(GASTextDefine.CUE_ANIMATION_INCLUDE_CHILDREN_ANIMATOR_TIP)]
         [LabelText(GASTextDefine.CUE_ANIMATION_INCLUDE_CHILDREN)]
+#endif
         [SerializeField]
         private bool _includeChildrenAnimator;
 
+#if UNITY_EDITOR
         [BoxGroup]
         [LabelText(GASTextDefine.CUE_ANIMATION_STATE)]
+#endif
         [SerializeField]
         private string _stateName;
 

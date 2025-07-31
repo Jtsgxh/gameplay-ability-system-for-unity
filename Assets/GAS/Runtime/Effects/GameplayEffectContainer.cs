@@ -179,11 +179,29 @@ namespace GAS.Runtime
             return AddGameplayEffectSpec(source, spec, true,effectLevel);
         }
         
-        public void RemoveGameplayEffectSpec(GameplayEffectSpec spec)
+        public void RemoveGameplayEffectSpec(GameplayEffectSpec spec, bool isPrematureRemoval = true)
         {
             spec.DisApply();
             spec.TriggerOnRemove();
             _gameplayEffectSpecs.Remove(spec);
+            
+            // Trigger expiration effects based on removal type
+            GameplayEffect[] expirationEffects = isPrematureRemoval 
+                ? spec.GameplayEffect.PrematureExpirationEffects 
+                : spec.GameplayEffect.RoutineExpirationEffects;
+                
+            if (expirationEffects != null)
+            {
+                foreach (var expirationEffect in expirationEffects)
+                {
+                    if (expirationEffect != null)
+                    {
+                        // 创建效果规格并设置正确的源
+                        var expirationSpec = expirationEffect.CreateSpec(spec.Source, _owner, spec.Level);
+                        _owner.ApplyGameplayEffectToSelf(expirationSpec);
+                    }
+                }
+            }
 
             OnGameplayEffectContainerIsDirty?.Invoke();
         }

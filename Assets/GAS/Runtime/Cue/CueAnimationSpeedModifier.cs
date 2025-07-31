@@ -8,25 +8,33 @@ namespace GAS.Runtime
     {
         const int LabelWidth = 120;
 
+#if UNITY_EDITOR
         [TabGroup("Data", "Data", SdfIconType.Gear, TextColor = "#FF7F00")]
         [InfoBox(GASTextDefine.CUE_ANIMATION_PATH_TIP, InfoMessageType.None)]
         [LabelText(GASTextDefine.CUE_ANIMATION_PATH), LabelWidth(LabelWidth)]
+#endif
         public string animatorRelativePath;
 
+#if UNITY_EDITOR
         [TabGroup("Data", "Data")]
         [InfoBox(GASTextDefine.CUE_ANIMATION_INCLUDE_CHILDREN_ANIMATOR_TIP, InfoMessageType.None)]
         [LabelText(GASTextDefine.CUE_ANIMATION_INCLUDE_CHILDREN), LabelWidth(LabelWidth)]
+#endif
         public bool includeChildrenAnimator;
 
+#if UNITY_EDITOR
         [TabGroup("Data", "Data")]
         [LabelText("播放速度"), LabelWidth(LabelWidth)]
         [Range(0, 5f)]
+#endif
         public float speed = 1f;
 
+#if UNITY_EDITOR
         [TabGroup("Data", "Data")]
         [InfoBox("结束时会设置的值, 如果有其它需求, 需要另外实现. ^_^", InfoMessageType.None)]
         [LabelText("默认播放速度"), LabelWidth(LabelWidth)]
         [Range(0, 5f)]
+#endif
         public float defaultSpeed = 1f;
 
         public override GameplayCueDurationalSpec CreateSpec(GameplayCueParameters parameters)

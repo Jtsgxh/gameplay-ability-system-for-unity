@@ -194,9 +194,26 @@ namespace GAS.Runtime
         {
             if (IsActive) return AbilityActivateResult.FailHasActivated;
             if (!CheckGameplayTagsValidTpActivate()) return AbilityActivateResult.FailTagRequirement;
+            if (!CheckSourceTags()) return AbilityActivateResult.FailSourceTagRequirement;
             if (!CheckCost()) return AbilityActivateResult.FailCost;
             if (CheckCooldown().TimeRemaining > 0) return AbilityActivateResult.FailCooldown;
 
+            return AbilityActivateResult.Success;
+        }
+        
+        /// <summary>
+        /// 检查技能是否可以对目标激活
+        /// </summary>
+        /// <param name="target">目标 AbilitySystemComponent</param>
+        /// <returns>激活结果</returns>
+        public virtual AbilityActivateResult CanActivateOnTarget(AbilitySystemComponent target)
+        {
+            var result = CanActivate();
+            if (result != AbilityActivateResult.Success) return result;
+            
+            if (target != null && !CheckTargetTags(target))
+                return AbilityActivateResult.FailTargetTagRequirement;
+                
             return AbilityActivateResult.Success;
         }
 
@@ -218,6 +235,39 @@ namespace GAS.Runtime
             }
 
             return hasAllTags && notHasAnyTags && notBlockedByOtherAbility;
+        }
+        
+        /// <summary>
+        /// 检查源（施法者）标签要求
+        /// </summary>
+        private bool CheckSourceTags()
+        {
+            // 如果没有配置源标签要求，直接返回true
+            if (Ability.Tag.SourceRequiredTags.Empty && Ability.Tag.SourceBlockedTags.Empty)
+                return true;
+                
+            var hasRequired = Owner.HasAllTags(Ability.Tag.SourceRequiredTags);
+            var notBlocked = !Owner.HasAnyTags(Ability.Tag.SourceBlockedTags);
+            
+            return hasRequired && notBlocked;
+        }
+        
+        /// <summary>
+        /// 检查目标标签要求
+        /// </summary>
+        /// <param name="target">目标 AbilitySystemComponent</param>
+        private bool CheckTargetTags(AbilitySystemComponent target)
+        {
+            if (target == null) return true;
+            
+            // 如果没有配置目标标签要求，直接返回true
+            if (Ability.Tag.TargetRequiredTags.Empty && Ability.Tag.TargetBlockedTags.Empty)
+                return true;
+                
+            var hasRequired = target.HasAllTags(Ability.Tag.TargetRequiredTags);
+            var notBlocked = !target.HasAnyTags(Ability.Tag.TargetBlockedTags);
+            
+            return hasRequired && notBlocked;
         }
 
         /// <summary>
