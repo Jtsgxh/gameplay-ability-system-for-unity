@@ -36,41 +36,65 @@ namespace GAS.Runtime
         [LabelText(GASTextDefine.ABILITY_MANUAL_ENDABILITY)]
         [LabelWidth(100)]
 #endif
+        /// <summary>
+        /// 是否手动结束技能，如果为true则技能不会在时间轴播放完成后自动结束
+        /// </summary>
         public bool manualEndAbility;
 
 #if UNITY_EDITOR
         [HideInInspector]
 #endif
-        public int FrameCount; // 能力结束时间
+        /// <summary>
+        /// 时间轴总帧数，定义技能的持续时间长度
+        /// </summary>
+        public int FrameCount;
 
 #if UNITY_EDITOR
         [HideInInspector]
 #endif
+        /// <summary>
+        /// 持续性Cue轨道数据列表，用于播放持续时间内的视听效果
+        /// </summary>
         public List<DurationalCueTrackData> DurationalCues = new List<DurationalCueTrackData>();
 
 #if UNITY_EDITOR
         [HideInInspector]
 #endif
+        /// <summary>
+        /// 瞬时Cue轨道数据列表，用于播放瞬间触发的视听效果
+        /// </summary>
         public List<InstantCueTrackData> InstantCues = new List<InstantCueTrackData>();
 
 #if UNITY_EDITOR
         [HideInInspector]
 #endif
+        /// <summary>
+        /// 释放游戏效果轨道数据列表，用于在特定时刻对目标应用游戏效果
+        /// </summary>
         public List<ReleaseGameplayEffectTrackData> ReleaseGameplayEffect = new List<ReleaseGameplayEffectTrackData>();
 
 #if UNITY_EDITOR
         [HideInInspector]
 #endif
+        /// <summary>
+        /// Buff游戏效果轨道数据列表，用于在技能执行期间对施法者应用持续性效果
+        /// </summary>
         public List<BuffGameplayEffectTrackData> BuffGameplayEffects = new List<BuffGameplayEffectTrackData>();
 
 #if UNITY_EDITOR
         [HideInInspector]
 #endif
+        /// <summary>
+        /// 瞬时任务轨道数据列表，用于在特定时刻执行瞬间任务逻辑
+        /// </summary>
         public List<TaskMarkEventTrackData> InstantTasks = new List<TaskMarkEventTrackData>();
 
 #if UNITY_EDITOR
         [HideInInspector]
 #endif
+        /// <summary>
+        /// 持续性任务轨道数据列表，用于在指定时间段内执行持续性任务逻辑
+        /// </summary>
         public List<TaskClipEventTrackData> OngoingTasks = new List<TaskClipEventTrackData>();
 
 #if UNITY_EDITOR

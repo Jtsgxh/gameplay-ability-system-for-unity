@@ -10,6 +10,9 @@ namespace GAS.Editor
 {
     public class AbilityOverview
     {
+        /// <summary>
+        /// 能力唯一名称为空时显示的警告消息
+        /// </summary>
         [BoxGroup("Warning", order: -1)]
         [HideLabel]
         [ShowIf("ExistAbilityWithEmptyUniqueName")]
@@ -18,6 +21,9 @@ namespace GAS.Editor
             "<size=13><color=yellow>The <color=orange>Unique Name</color> of the ability must not be <color=red><b>EMPTY</b></color>! " +
             "Please check!</color></size>";
 
+        /// <summary>
+        /// 能力唯一名称重复时显示的警告消息
+        /// </summary>
         [BoxGroup("Warning", order: -1)]
         [HideLabel]
         [ShowIf("ExistAbilityWithDuplicatedUniqueName")]
@@ -26,6 +32,9 @@ namespace GAS.Editor
             "<size=13><color=yellow>The <color=orange>Unique Name</color> of the ability must not be <color=red><b>DUPLICATED</b></color>! " +
             "The duplicated abilities are as follows:<color=white> Move,Attack </color>.</color></size>";
 
+        /// <summary>
+        /// 存储所有能力信息的列表
+        /// </summary>
         [VerticalGroup("Abilities", order: 1)]
         [ListDrawerSettings(ShowFoldout = true, ShowIndexLabels = false, ShowItemCount = true, IsReadOnly = true)]
         [DisplayAsString]
@@ -54,6 +63,9 @@ namespace GAS.Editor
             AssetDatabase.Refresh();
         }
 
+        /// <summary>
+        /// 是否按唯一名称排序，true为按唯一名称排序，false为按资产名称排序
+        /// </summary>
         private bool _orderByUniqueName = true;
 
         [HorizontalGroup("Buttons", width: 180)]
@@ -65,6 +77,9 @@ namespace GAS.Editor
             Refresh();
         }
 
+        /// <summary>
+        /// 是否显示详细信息
+        /// </summary>
         private bool _showDetail = false;
 
         [HorizontalGroup("Buttons", width: 120)]

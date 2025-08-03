@@ -22,7 +22,7 @@ namespace GAS.Editor
         private const string BOXGROUP_ASC_H_R_A_VB = "Ability System Components/H/R/A/VB";
         private const string BOXGROUP_ASC_H_R_A_VC = "Ability System Components/H/R/A/VC";
 
-        private AbilitySystemComponent _selected;
+        private AbilitySystemComponent _selected; // 当前选中的能力系统组件
 
         [HideLabel]
         [DisplayAsString(TextAlignment.Center, true)]
@@ -126,7 +126,7 @@ namespace GAS.Editor
         public List<string> DynamicTag = new List<string>();
 
 
-        private Vector2 menuScrollPos;
+        private Vector2 menuScrollPos; // 菜单滚动位置
 
         private bool IsPlaying => Application.isPlaying;
 

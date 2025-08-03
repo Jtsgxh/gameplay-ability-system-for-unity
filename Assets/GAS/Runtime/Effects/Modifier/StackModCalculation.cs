@@ -13,12 +13,18 @@ namespace GAS.Runtime
         [TabGroup("Default", "StackModCalculation")]
         [LabelText("系数(k)")]
 #endif
+        /// <summary>
+        /// 系数k，用于计算堆叠修正值
+        /// </summary>
         public float k = 1;
 
 #if UNITY_EDITOR
         [TabGroup("Default", "StackModCalculation")]
         [LabelText("常量(b)")]
 #endif
+        /// <summary>
+        /// 常量b，用于计算堆叠修正值
+        /// </summary>
         public float b = 0;
         
         public override float CalculateMagnitude(GameplayEffectSpec spec, float modifierMagnitude)

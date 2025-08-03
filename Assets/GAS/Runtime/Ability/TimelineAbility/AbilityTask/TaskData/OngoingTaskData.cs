@@ -48,11 +48,20 @@ namespace GAS.Runtime
 
         #region SonTypes
 
+        /// <summary>
+        /// 缓存的持续性任务子类型数组
+        /// </summary>
         private static Type[] _ongoingTaskSonTypes;
 
+        /// <summary>
+        /// 获取所有持续性任务的子类型数组
+        /// </summary>
         public static Type[] OngoingTaskSonTypes =>
             _ongoingTaskSonTypes ??= TypeUtil.GetAllSonTypesOf(typeof(OngoingAbilityTask));
 
+        /// <summary>
+        /// 获取持续性任务子类型的全名称列表，用于编辑器下拉选择
+        /// </summary>
         public static List<string> OngoingTaskSonTypeChoices
         {
             get

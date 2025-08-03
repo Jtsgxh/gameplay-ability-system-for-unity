@@ -12,12 +12,18 @@ namespace GAS.Runtime
         [BoxGroup]
         [LabelText(GASTextDefine.CUE_SOUND_EFFECT)]
 #endif
+        /// <summary>
+        /// 音效文件
+        /// </summary>
         public AudioClip soundEffect; 
         
 #if UNITY_EDITOR
         [BoxGroup]
         [LabelText(GASTextDefine.CUE_ATTACH_TO_OWNER)]
 #endif
+        /// <summary>
+        /// 是否附加到拥有者
+        /// </summary>
         public bool isAttachToOwner = true;
         
         public override GameplayCueDurationalSpec CreateSpec(GameplayCueParameters parameters)
@@ -28,6 +34,9 @@ namespace GAS.Runtime
     
     public class CuePlaySoundSpec : GameplayCueDurationalSpec<CuePlaySound>
     {
+        /// <summary>
+        /// 音频源组件
+        /// </summary>
         private AudioSource _audioSource;
         
         public CuePlaySoundSpec(CuePlaySound cue, GameplayCueParameters parameters) : base(cue,

@@ -9,7 +9,7 @@ namespace GAS.Editor
 
     public class TaskClipEventTrackEditor:OdinEditorWindow
     {
-        private TaskClipEventTrack _track;
+        private TaskClipEventTrack _track; // 任务剪辑事件轨道
         
         public static TaskClipEventTrackEditor Create(TaskClipEventTrack track)
         {

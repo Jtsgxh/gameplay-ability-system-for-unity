@@ -18,7 +18,7 @@ namespace GAS.Editor
 {
     public class GASAssetAggregator : OdinMenuEditorWindow
     {
-        private static readonly Type[] _types = new Type[5]
+        private static readonly Type[] _types = new Type[5] // 资源类型数组
         {
             typeof(ModifierMagnitudeCalculation),
             typeof(GameplayCue),
@@ -27,7 +27,7 @@ namespace GAS.Editor
             typeof(AbilitySystemComponentPreset)
         };
 
-        private static string[] _libPaths;
+        private static string[] _libPaths; // 库路径数组
 
         static string[] LibPaths
         {
@@ -38,10 +38,10 @@ namespace GAS.Editor
             }
         }
 
-        private static readonly DirectoryInfo[] _directoryInfos = new DirectoryInfo[5];
-        private static readonly List<DirectoryInfo> _subDirectoryInfos = new List<DirectoryInfo>();
+        private static readonly DirectoryInfo[] _directoryInfos = new DirectoryInfo[5]; // 目录信息数组
+        private static readonly List<DirectoryInfo> _subDirectoryInfos = new List<DirectoryInfo>(); // 子目录信息列表
 
-        private static readonly string[] MenuNames = new string[5]
+        private static readonly string[] MenuNames = new string[5] // 菜单名称数组
         {
             "A- Mod Magnitude Calculation",
             "A- Gameplay Cue",

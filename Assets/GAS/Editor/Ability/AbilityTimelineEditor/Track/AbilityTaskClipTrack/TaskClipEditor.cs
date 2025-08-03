@@ -16,14 +16,14 @@ namespace GAS.Editor
 
     public class TaskClipEditor:OdinEditorWindow
     {
-        private static IEnumerable OngoingTaskSonTypes = OngoingTaskData.OngoingTaskSonTypeChoices;
+        private static IEnumerable OngoingTaskSonTypes = OngoingTaskData.OngoingTaskSonTypeChoices; // 持续任务子类型选择
         
-        private static Type[] _ongoingTaskInspectorTypes;
+        private static Type[] _ongoingTaskInspectorTypes; // 持续任务检视器类型数组
 
         public static Type[] OngoingTaskInspectorTypes =>
             _ongoingTaskInspectorTypes ??= TypeUtil.GetAllSonTypesOf(typeof(OngoingTaskInspector));
         
-        private static Dictionary<Type, Type> _ongoingTaskInspectorMap;
+        private static Dictionary<Type, Type> _ongoingTaskInspectorMap; // 持续任务检视器映射
         private static Dictionary<Type, Type> OngoingTaskInspectorMap
         {
             get
@@ -43,7 +43,7 @@ namespace GAS.Editor
         private const string GRP_BOX = "GRP_BOX";
         private const string GRP_BOX_TASK = "GRP_BOX/Task";
         private TimelineAbilityAssetBase AbilityAsset => AbilityTimelineEditorWindow.Instance.AbilityAsset;
-        private TaskClip _clip;
+        private TaskClip _clip; // 任务剪辑
         
         public static TaskClipEditor Create(TaskClip clip)
         {

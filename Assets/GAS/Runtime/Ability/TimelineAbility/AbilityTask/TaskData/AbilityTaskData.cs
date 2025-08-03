@@ -7,6 +7,9 @@ namespace GAS.Runtime
     [Serializable]
     public abstract class AbilityTaskData
     {
+        /// <summary>
+        /// 任务的JSON序列化数据，包含类型信息和实例数据
+        /// </summary>
         public JsonData TaskData;
         
         public virtual AbilityTaskBase Create(AbilitySpec abilitySpec)

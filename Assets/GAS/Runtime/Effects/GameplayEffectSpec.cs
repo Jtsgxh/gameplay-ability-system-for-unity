@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using GAS.General;
 using UnityEngine;
@@ -23,8 +24,19 @@ namespace GAS.Runtime
     /// </remarks>
     public class GameplayEffectSpec
     {
+        /// <summary>
+        /// 基于标签的数值映射字典，用于SetByCaller机制
+        /// </summary>
         private Dictionary<GameplayTag, float> _valueMapWithTag = new Dictionary<GameplayTag, float>();
+        
+        /// <summary>
+        /// 基于名称的数值映射字典，用于SetByCaller机制
+        /// </summary>
         private Dictionary<string, float> _valueMapWithName = new Dictionary<string, float>();
+        
+        /// <summary>
+        /// 持续性Cue效果规格列表
+        /// </summary>
         private List<GameplayCueDurationalSpec> _cueDurationalSpecs = new List<GameplayCueDurationalSpec>();
 
         /// <summary>
@@ -89,6 +101,7 @@ namespace GAS.Runtime
                 SetGrantedAbility(GameplayEffect.GrantedAbilities);
             }
             CaptureAttributesSnapshot();
+            SetupEventListeners();
         }
         /// <summary>
         /// 获取游戏效果定义
@@ -224,6 +237,11 @@ namespace GAS.Runtime
         /// 堆叠数
         /// </summary>
         public int StackCount { get; private set; } = 1;
+        
+        /// <summary>
+        /// 事件监听器字典 - 事件名 -> 事件处理器
+        /// </summary>
+        private Dictionary<string, Action<GameplayEventData>> _eventListeners = new Dictionary<string, Action<GameplayEventData>>();
         
 
         /// <summary>
@@ -473,18 +491,24 @@ namespace GAS.Runtime
             // 执行 Modifier
             Owner.ApplyModFromInstantGameplayEffect(this);
             
-            // 执行 GameplayEffectExecutionCalculation
+            // 执行 GameplayEffectExecutionCalculation (按优先级排序)
             if (GameplayEffect.Executions != null && GameplayEffect.Executions.Length > 0)
             {
-                foreach (var execution in GameplayEffect.Executions)
+                // 按执行优先级排序 (优先级高的先执行)
+                var sortedExecutions = GameplayEffect.Executions
+                    .Where(execution => execution != null)
+                    .OrderByDescending(execution => execution.GetExecutionPriority())
+                    .ToArray();
+                    
+                foreach (var execution in sortedExecutions)
                 {
-                    if (execution == null) continue;
-                    
                     var executionParams = new GameplayEffectCustomExecutionParameters(Source, Owner, this, Level);
-                    var executionOutput = new GameplayEffectCustomExecutionOutput();
                     
-                    execution.Execute(executionParams, executionOutput);
-                    execution.ApplyExecutionToTarget(executionParams, executionOutput);
+                    // 检查执行条件
+                    if (execution.ShouldExecute(executionParams))
+                    {
+                        execution.Execute(executionParams);
+                    }
                 }
             }
             
@@ -501,6 +525,8 @@ namespace GAS.Runtime
             TriggerCueOnRemove();
             
             TryRemoveGrantedAbilities();
+            
+            CleanupEventListeners();
         }
 
         private void TriggerOnActivation()
@@ -526,6 +552,35 @@ namespace GAS.Runtime
             if (DurationPolicy == EffectsDurationPolicy.Duration ||
                 DurationPolicy == EffectsDurationPolicy.Infinite)
                 CueOnTick();
+        }
+
+        /// <summary>
+        /// 触发周期执行的ExecutionCalculation
+        /// </summary>
+        /// <remarks>
+        /// 只执行支持周期执行的ExecutionCalculation，按优先级排序
+        /// </remarks>
+        public void TriggerOnPeriodExecute()
+        {
+            if (GameplayEffect.Executions != null && GameplayEffect.Executions.Length > 0)
+            {
+                // 筛选支持周期执行的ExecutionCalculation并按优先级排序
+                var periodExecutions = GameplayEffect.Executions
+                    .Where(execution => execution != null && execution.SupportsPeriodExecution())
+                    .OrderByDescending(execution => execution.GetExecutionPriority())
+                    .ToArray();
+                    
+                foreach (var execution in periodExecutions)
+                {
+                    var executionParams = new GameplayEffectCustomExecutionParameters(Source, Owner, this, Level);
+                    
+                    // 检查执行条件
+                    if (execution.ShouldExecute(executionParams))
+                    {
+                        execution.Execute(executionParams);
+                    }
+                }
+            }
         }
 
         public void TriggerOnImmunity()
@@ -783,6 +838,160 @@ namespace GAS.Runtime
             onStackCountChanged -= callback;
         }
 
+        #endregion
+        
+        #region EVENT HANDLING
+        
+        /// <summary>
+        /// 设置事件监听器
+        /// </summary>
+        /// <remarks>
+        /// 扫描所有ExecutionCalculation的事件条件，为每个唯一的事件名注册监听器。
+        /// 当相关事件发生时，会检查条件并触发ExecutionCalculation。
+        /// </remarks>
+        private void SetupEventListeners()
+        {
+            if (GameplayEffect.Executions == null || GameplayEffect.Executions.Length == 0)
+                return;
+                
+            var eventConditions = new List<EventExecutionCondition>();
+            
+            // 收集所有ExecutionCalculation中的事件条件
+            foreach (var execution in GameplayEffect.Executions)
+            {
+                if (execution == null) continue;
+                
+                var conditions = execution.GetExecutionConditions();
+                if (conditions == null) continue;
+                
+                foreach (var condition in conditions)
+                {
+                    if (condition is EventExecutionCondition eventCondition)
+                    {
+                        eventConditions.Add(eventCondition);
+                    }
+                }
+            }
+            
+            // 按事件名分组，避免重复监听
+            var eventGroups = eventConditions.GroupBy(ec => ec.EventName);
+            
+            foreach (var group in eventGroups)
+            {
+                var eventName = group.Key;
+                var conditions = group.ToList();
+                
+                // 创建事件处理器
+                Action<GameplayEventData> handler = (eventData) => OnEventReceived(eventData, conditions);
+                
+                // 注册到事件总线
+                GameplayEventBus.Instance.Subscribe(eventName, handler);
+                
+                // 保存引用用于清理
+                _eventListeners[eventName] = handler;
+            }
+        }
+        
+        /// <summary>
+        /// 清理事件监听器
+        /// </summary>
+        /// <remarks>
+        /// 从事件总线取消订阅所有事件，防止内存泄漏。
+        /// 通常在效果移除时调用。
+        /// </remarks>
+        private void CleanupEventListeners()
+        {
+            foreach (var kvp in _eventListeners)
+            {
+                GameplayEventBus.Instance.Unsubscribe(kvp.Key, kvp.Value);
+            }
+            
+            _eventListeners.Clear();
+        }
+        
+        /// <summary>
+        /// 处理接收到的事件
+        /// </summary>
+        /// <param name="eventData">事件数据</param>
+        /// <param name="eventConditions">相关的事件条件列表</param>
+        private void OnEventReceived(GameplayEventData eventData, List<EventExecutionCondition> eventConditions)
+        {
+            if (!IsActive) return; // 只有激活的效果才处理事件
+            
+            var executionParams = new GameplayEffectCustomExecutionParameters(Source, Owner, this, Level);
+            
+            // 检查每个事件条件是否匹配
+            foreach (var eventCondition in eventConditions)
+            {
+                if (eventCondition.MatchesEvent(eventData, executionParams))
+                {
+                    // 触发事件条件
+                    eventCondition.TriggerEvent(eventData);
+                }
+            }
+            
+            // 检查是否有ExecutionCalculation的条件现在满足了
+            CheckAndExecuteConditionalCalculations();
+        }
+        
+        /// <summary>
+        /// 检查并执行满足条件的ExecutionCalculation
+        /// </summary>
+        /// <remarks>
+        /// 遍历所有ExecutionCalculation，检查其条件是否满足，如果满足则立即执行。
+        /// 执行后会重置事件条件状态，为下次触发做准备。
+        /// </remarks>
+        private void CheckAndExecuteConditionalCalculations()
+        {
+            if (GameplayEffect.Executions == null || GameplayEffect.Executions.Length == 0)
+                return;
+                
+            var executionParams = new GameplayEffectCustomExecutionParameters(Source, Owner, this, Level);
+            
+            // 按优先级排序
+            var sortedExecutions = GameplayEffect.Executions
+                .Where(execution => execution != null)
+                .OrderByDescending(execution => execution.GetExecutionPriority())
+                .ToArray();
+                
+            foreach (var execution in sortedExecutions)
+            {
+                // 检查执行条件
+                if (execution.ShouldExecute(executionParams))
+                {
+                    try
+                    {
+                        execution.Execute(executionParams);
+                        
+                        // 重置事件条件状态
+                        ResetEventConditions(execution);
+                    }
+                    catch (Exception ex)
+                    {
+                        UnityEngine.Debug.LogError($"Error executing conditional ExecutionCalculation: {ex}");
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 重置ExecutionCalculation中的事件条件状态
+        /// </summary>
+        /// <param name="execution">要重置的ExecutionCalculation</param>
+        private void ResetEventConditions(GameplayEffectExecutionCalculation execution)
+        {
+            var conditions = execution.GetExecutionConditions();
+            if (conditions == null) return;
+            
+            foreach (var condition in conditions)
+            {
+                if (condition is EventExecutionCondition eventCondition)
+                {
+                    eventCondition.ResetEvent();
+                }
+            }
+        }
+        
         #endregion
     }
 }

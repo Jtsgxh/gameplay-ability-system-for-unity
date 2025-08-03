@@ -5,8 +5,8 @@ namespace GAS.Editor
 {
     public class DirtyManager
     {
-        private static HashSet<UnityEngine.Object> _dirtyObjects = new HashSet<UnityEngine.Object>();
-        private static double _lastMarkTime;
+        private static HashSet<UnityEngine.Object> _dirtyObjects = new HashSet<UnityEngine.Object>(); // 需要标记为脏的对象集合
+        private static double _lastMarkTime; // 最后标记时间
         private const double MARK_INTERVAL = 0.5; // 500ms间隔
 
         public static void MarkDirty(UnityEngine.Object obj)
@@ -37,8 +37,8 @@ namespace GAS.Editor
     }
     public class BatchOperationManager 
     {
-        private bool _isBatchOperating;
-        private HashSet<UnityEngine.Object> _modifiedObjects = new HashSet<UnityEngine.Object>();
+        private bool _isBatchOperating; // 是否正在批量操作
+        private HashSet<UnityEngine.Object> _modifiedObjects = new HashSet<UnityEngine.Object>(); // 修改的对象集合
 
         public void BeginBatchOperation()
         {
@@ -76,8 +76,8 @@ namespace GAS.Editor
     }
     public class DelayedDirtyManager
     {
-        private static HashSet<UnityEngine.Object> _pendingDirtyObjects = new HashSet<UnityEngine.Object>();
-        private static bool _isSubscribed;
+        private static HashSet<UnityEngine.Object> _pendingDirtyObjects = new HashSet<UnityEngine.Object>(); // 待处理的脏对象集合
+        private static bool _isSubscribed; // 是否已订阅更新事件
 
         public static void MarkDirtyDelayed(UnityEngine.Object obj)
         {

@@ -58,6 +58,9 @@ namespace GAS
     /// </example>
     public class GameplayAbilitySystem
     {
+        /// <summary>
+        /// 全局GAS系统实例
+        /// </summary>
         private static GameplayAbilitySystem _gas;
 
         /// <summary>

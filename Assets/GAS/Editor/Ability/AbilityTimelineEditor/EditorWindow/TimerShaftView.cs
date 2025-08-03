@@ -7,19 +7,49 @@ namespace GAS.Editor
     using UnityEngine.UIElements;
     public class TimerShaftView
     {
+        /// <summary>
+        /// 根视觉元素
+        /// </summary>
         private readonly VisualElement _root;
 
+        /// <summary>
+        /// 虚线帧索引
+        /// </summary>
         private int _dottedLineFrameIndex = -1;
 
+        /// <summary>
+        /// 拖拽项预览矩形
+        /// </summary>
         private Rect _dragItemPreviewRect;
 
+        /// <summary>
+        /// 是否显示拖拽项预览
+        /// </summary>
         private bool _showDragItemPreview;
+        /// <summary>
+        /// 内容视口
+        /// </summary>
         private VisualElement contentViewPort;
+        /// <summary>
+        /// 虚线容器
+        /// </summary>
         private IMGUIContainer DottedLine;
+        /// <summary>
+        /// 拖拽项预览容器
+        /// </summary>
         private IMGUIContainer DragItemPreview;
+        /// <summary>
+        /// 结束线容器
+        /// </summary>
         private IMGUIContainer FinishLine;
+        /// <summary>
+        /// 选择线容器
+        /// </summary>
         private IMGUIContainer SelectLine;
 
+        /// <summary>
+        /// 鼠标是否在时间轴内
+        /// </summary>
         private bool timerShaftMouseIn;
 
         public TimerShaftView(VisualElement root)
@@ -31,10 +61,22 @@ namespace GAS.Editor
         private static AbilityTimelineEditorWindow EditorInst => AbilityTimelineEditorWindow.Instance;
         private static AbilityTimelineEditorConfig Config => AbilityTimelineEditorWindow.Instance.Config;
 
+        /// <summary>
+        /// 时间轴容器
+        /// </summary>
         public IMGUIContainer TimerShaft { get; private set; }
+        /// <summary>
+        /// 时间线容器
+        /// </summary>
         public VisualElement TimeLineContainer { get; private set; }
+        /// <summary>
+        /// 主内容滚动视图
+        /// </summary>
         public ScrollView MainContent { get; private set; }
 
+        /// <summary>
+        /// 虚线帧索引属性
+        /// </summary>
         public int DottedLineFrameIndex
         {
             get => _dottedLineFrameIndex;
@@ -50,6 +92,9 @@ namespace GAS.Editor
             }
         }
 
+        /// <summary>
+        /// 显示拖拽项预览属性
+        /// </summary>
         public bool ShowDragItemPreview
         {
             get => _showDragItemPreview;
@@ -61,6 +106,9 @@ namespace GAS.Editor
             }
         }
 
+        /// <summary>
+        /// 拖拽项预览矩形属性
+        /// </summary>
         public Rect DragItemPreviewRect
         {
             get => _dragItemPreviewRect;

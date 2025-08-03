@@ -16,9 +16,23 @@ namespace GAS.Runtime
 #if UNITY_EDITOR
         [DetailedInfoBox(Desc, Detail, InfoMessageType.Info)]
 #endif
+        /// <summary>
+        /// 线性函数的系数参数
+        /// </summary>
+        /// <remarks>
+        /// 在公式 ModifierMagnitude * k + b 中的斜率系数，
+        /// 用于缩放输入的修饰器幅值
+        /// </remarks>
         [SerializeField]
         private float k = 1f;
 
+        /// <summary>
+        /// 线性函数的常数项参数
+        /// </summary>
+        /// <remarks>
+        /// 在公式 ModifierMagnitude * k + b 中的偏移量，
+        /// 用于在缩放后添加固定值
+        /// </remarks>
         [SerializeField] private float b = 0f;
 
         public override float CalculateMagnitude(GameplayEffectSpec spec, float input)

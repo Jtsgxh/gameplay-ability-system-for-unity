@@ -4,7 +4,13 @@ namespace GAS.Editor
     using UnityEngine.UIElements;
     public class TimelineInspector
     {
+        /// <summary>
+        /// 检查器的根视觉元素
+        /// </summary>
         private VisualElement _root;
+        /// <summary>
+        /// 当前检查器正在检查的对象
+        /// </summary>
         public object CurrentInspectorObject;
         public TimelineInspector(VisualElement root)
         {

@@ -4,6 +4,9 @@ namespace GAS.General
 {
     public class ObservableValue<T>
     {
+        /// <summary>
+        /// 存储的值
+        /// </summary>
         private T _value;
 
         public ObservableValue(T initialValue)
@@ -22,6 +25,9 @@ namespace GAS.General
             }
         }
 
+        /// <summary>
+        /// 值变更事件，参数为旧值和新值
+        /// </summary>
         public event Action<T, T> OnValueChanged;
     }
 }

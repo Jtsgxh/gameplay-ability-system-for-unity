@@ -10,7 +10,7 @@ namespace GAS.Editor
     
     public class ScriptableSingleton<T> : ScriptableObject where T : ScriptableObject
     {
-        private static T s_Instance;
+        private static T s_Instance; // 单例实例
         public static T Instance
         {
             get
@@ -77,7 +77,7 @@ namespace GAS.Editor
     [AttributeUsage(AttributeTargets.Class)]
     public class FilePathAttribute : Attribute
     {
-        internal string filepath;
+        internal string filepath; // 文件路径
         /// <summary>
         /// 单例存放路径
         /// </summary>

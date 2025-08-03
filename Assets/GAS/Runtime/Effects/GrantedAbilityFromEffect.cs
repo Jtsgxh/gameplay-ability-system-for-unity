@@ -83,42 +83,90 @@ namespace GAS.Runtime
         WhenCancelOrEnd,
     }
 
+    /// <summary>
+    /// 授予技能配置结构体
+    /// 定义了由游戏效果授予的技能的各种策略配置
+    /// </summary>
     [Serializable]
     public struct GrantedAbilityConfig
     {
+        /// <summary>
+        /// 编辑器标签宽度常量
+        /// </summary>
         private const int LABEL_WIDTH = 50;
 
+        /// <summary>
+        /// 要授予的技能资产
+        /// </summary>
         [LabelWidth(LABEL_WIDTH)]
         [LabelText(GASTextDefine.LABEL_GRANT_ABILITY)]
         [AssetSelector]
         public AbilityAsset AbilityAsset;
 
+        /// <summary>
+        /// 授予技能的等级
+        /// </summary>
         [LabelWidth(LABEL_WIDTH)]
         [LabelText(GASTextDefine.LABEL_GRANT_ABILITY_LEVEL)]
         public int AbilityLevel;
 
+        /// <summary>
+        /// 技能激活策略
+        /// 定义技能何时被激活
+        /// </summary>
         [LabelWidth(LABEL_WIDTH)]
         [LabelText(GASTextDefine.LABEL_GRANT_ABILITY_ACTIVATION_POLICY)]
         [Tooltip(GASTextDefine.TIP_GRANT_ABILITY_ACTIVATION_POLICY)]
         public GrantedAbilityActivationPolicy ActivationPolicy;
 
+        /// <summary>
+        /// 技能失活策略
+        /// 定义技能何时被失活
+        /// </summary>
         [LabelWidth(LABEL_WIDTH)]
         [LabelText(GASTextDefine.LABEL_GRANT_ABILITY_DEACTIVATION_POLICY)]
         [Tooltip(GASTextDefine.TIP_GRANT_ABILITY_DEACTIVATION_POLICY)]
         public GrantedAbilityDeactivationPolicy DeactivationPolicy;
 
+        /// <summary>
+        /// 技能移除策略
+        /// 定义技能何时被移除
+        /// </summary>
         [LabelWidth(LABEL_WIDTH)]
         [LabelText(GASTextDefine.LABEL_GRANT_ABILITY_REMOVE_POLICY)]
         [Tooltip(GASTextDefine.TIP_GRANT_ABILITY_REMOVE_POLICY)]
         public GrantedAbilityRemovePolicy RemovePolicy;
     }
 
+    /// <summary>
+    /// 游戏效果授予的技能类
+    /// 封装由游戏效果授予的技能实例及其相关策略
+    /// </summary>
     public class GrantedAbilityFromEffect
     {
+        /// <summary>
+        /// 授予的技能实例
+        /// </summary>
         public readonly AbstractAbility Ability;
+        
+        /// <summary>
+        /// 技能等级
+        /// </summary>
         public readonly int AbilityLevel;
+        
+        /// <summary>
+        /// 技能激活策略
+        /// </summary>
         public readonly GrantedAbilityActivationPolicy ActivationPolicy;
+        
+        /// <summary>
+        /// 技能失活策略
+        /// </summary>
         public readonly GrantedAbilityDeactivationPolicy DeactivationPolicy;
+        
+        /// <summary>
+        /// 技能移除策略
+        /// </summary>
         public readonly GrantedAbilityRemovePolicy RemovePolicy;
 
         public GrantedAbilityFromEffect(GrantedAbilityConfig config)
@@ -153,17 +201,57 @@ namespace GAS.Runtime
         }
     }
 
+    /// <summary>
+    /// 游戏效果授予技能的具体实例
+    /// 代表由特定游戏效果授予给特定目标的技能实例
+    /// </summary>
     public class GrantedAbilitySpecFromEffect
     {
+        /// <summary>
+        /// 授予技能的原始定义
+        /// </summary>
         public readonly GrantedAbilityFromEffect GrantedAbility;
+        
+        /// <summary>
+        /// 源游戏效果实例
+        /// 指向授予此技能的游戏效果
+        /// </summary>
         public readonly GameplayEffectSpec SourceEffectSpec;
+        
+        /// <summary>
+        /// 技能拥有者
+        /// 接受此技能的技能系统组件
+        /// </summary>
         public readonly AbilitySystemComponent Owner;
 
+        /// <summary>
+        /// 技能名称
+        /// </summary>
         public readonly string AbilityName;
+        
+        /// <summary>
+        /// 技能等级（只读属性）
+        /// </summary>
         public int AbilityLevel => GrantedAbility.AbilityLevel;
+        
+        /// <summary>
+        /// 技能激活策略（只读属性）
+        /// </summary>
         public GrantedAbilityActivationPolicy ActivationPolicy => GrantedAbility.ActivationPolicy;
+        
+        /// <summary>
+        /// 技能失活策略（只读属性）
+        /// </summary>
         public GrantedAbilityDeactivationPolicy DeactivationPolicy => GrantedAbility.DeactivationPolicy;
+        
+        /// <summary>
+        /// 技能移除策略（只读属性）
+        /// </summary>
         public GrantedAbilityRemovePolicy RemovePolicy => GrantedAbility.RemovePolicy;
+        
+        /// <summary>
+        /// 技能规格实例（只读属性）
+        /// </summary>
         public AbilitySpec AbilitySpec => Owner.AbilityContainer.AbilitySpecs()[AbilityName];
 
         public GrantedAbilitySpecFromEffect(GrantedAbilityFromEffect grantedAbility,

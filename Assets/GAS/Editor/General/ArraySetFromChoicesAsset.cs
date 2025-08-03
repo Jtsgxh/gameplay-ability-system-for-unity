@@ -9,11 +9,11 @@ namespace GAS.Editor.General
     
     public class ArraySetFromChoicesAsset<T>
     {
-        private List<T> choices;
-        private string[] choiceNames;
-        private CustomReorderableList<T> _reorderableList;
+        private List<T> choices; // 选择列表
+        private string[] choiceNames; // 选择名称数组
+        private CustomReorderableList<T> _reorderableList; // 可重排列表
         
-        string _title;
+        string _title; // 标题
         
         public ArraySetFromChoicesAsset(T[] initData,List<T> choices,string title,Action<int,T> onEdit)
         {

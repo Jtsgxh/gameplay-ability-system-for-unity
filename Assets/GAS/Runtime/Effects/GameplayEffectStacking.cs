@@ -71,20 +71,64 @@ namespace GAS.Runtime
         //TODO :可以达到Duration结束时减少两层并刷新Duration这样复杂的效果。
     }
 
-    // GE堆栈数据结构
+    /// <summary>
+    /// 游戏效果堆叠数据结构
+    /// 定义游戏效果的堆叠行为和策略
+    /// </summary>
     public struct GameplayEffectStacking
     {
+        /// <summary>
+        /// 堆叠识别码名称（实际不会直接使用，而是使用其哈希值）
+        /// </summary>
         public string stackingCodeName; // 实际允许不会使用，而是使用stackingCodeName的hash值, 即stackingHashCode
+        
+        /// <summary>
+        /// 堆叠识别码的哈希值，用于实际的堆叠判断
+        /// </summary>
         public int stackingHashCode;
+        
+        /// <summary>
+        /// 堆叠类型
+        /// </summary>
         public StackingType stackingType;
+        
+        /// <summary>
+        /// 堆叠层数限制
+        /// </summary>
         public int limitCount;
+        
+        /// <summary>
+        /// 持续时间刷新策略
+        /// </summary>
         public DurationRefreshPolicy durationRefreshPolicy;
+        
+        /// <summary>
+        /// 周期重置策略
+        /// </summary>
         public PeriodResetPolicy periodResetPolicy;
+        
+        /// <summary>
+        /// 过期策略
+        /// </summary>
         public ExpirationPolicy expirationPolicy;
 
         // Overflow 溢出逻辑处理
+        /// <summary>
+        /// 拒绝溢出应用
+        /// 对应于StackDurationRefreshPolicy，如果为True则多余的Apply不会刷新Duration
+        /// </summary>
         public bool denyOverflowApplication; //对应于StackDurationRefreshPolicy，如果为True则多余的Apply不会刷新Duration
+        
+        /// <summary>
+        /// 溢出时清除堆叠
+        /// 当DenyOverflowApplication为True时才有效，当Overflow时是否直接删除所有层数
+        /// </summary>
         public bool clearStackOnOverflow; //当DenyOverflowApplication为True是才有效，当Overflow时是否直接删除所有层数
+        
+        /// <summary>
+        /// 溢出时触发的效果数组
+        /// 超过StackLimitCount数量的Effect被Apply时将会调用该OverflowEffects
+        /// </summary>
         public GameplayEffect[] overflowEffects; // 超过StackLimitCount数量的Effect被Apply时将会调用该OverflowEffects
 
         public void SetStackingCodeName(string stackingCodeName)
@@ -158,11 +202,21 @@ namespace GAS.Runtime
         }
     }
 
+    /// <summary>
+    /// 游戏效果堆叠配置类
+    /// 用于在编辑器中配置游戏效果的堆叠行为
+    /// </summary>
     [Serializable]
     public sealed class GameplayEffectStackingConfig
     {
+        /// <summary>
+        /// 编辑器标签宽度常量
+        /// </summary>
         private const int LABEL_WIDTH = 100;
 
+        /// <summary>
+        /// 堆叠类型
+        /// </summary>
 #if UNITY_EDITOR
         [LabelWidth(LABEL_WIDTH)]
         [VerticalGroup]
@@ -171,6 +225,9 @@ namespace GAS.Runtime
 #endif
         public StackingType stackingType;
 
+        /// <summary>
+        /// 堆叠识别码名称
+        /// </summary>
 #if UNITY_EDITOR
         [LabelWidth(LABEL_WIDTH)]
         [VerticalGroup]
@@ -180,6 +237,9 @@ namespace GAS.Runtime
 #endif
         public string stackingCodeName;
 
+        /// <summary>
+        /// 堆叠层数限制
+        /// </summary>
 #if UNITY_EDITOR
         [LabelWidth(LABEL_WIDTH)]
         [VerticalGroup]
@@ -191,6 +251,9 @@ namespace GAS.Runtime
 #endif
         public int limitCount;
 
+        /// <summary>
+        /// 持续时间刷新策略
+        /// </summary>
 #if UNITY_EDITOR
         [LabelWidth(LABEL_WIDTH)]
         [VerticalGroup]
@@ -202,6 +265,9 @@ namespace GAS.Runtime
 #endif
         public DurationRefreshPolicy durationRefreshPolicy;
 
+        /// <summary>
+        /// 周期重置策略
+        /// </summary>
 #if UNITY_EDITOR
         [LabelWidth(LABEL_WIDTH)]
         [VerticalGroup]
@@ -210,6 +276,9 @@ namespace GAS.Runtime
 #endif
         public PeriodResetPolicy periodResetPolicy;
 
+        /// <summary>
+        /// 过期策略
+        /// </summary>
 #if UNITY_EDITOR
         [LabelWidth(LABEL_WIDTH)]
         [VerticalGroup]
@@ -219,6 +288,9 @@ namespace GAS.Runtime
         public ExpirationPolicy expirationPolicy;
 
         // Overflow 溢出逻辑处理
+        /// <summary>
+        /// 拒绝溢出应用
+        /// </summary>
 #if UNITY_EDITOR
         [LabelWidth(LABEL_WIDTH)]
         [VerticalGroup]
@@ -227,6 +299,9 @@ namespace GAS.Runtime
 #endif
         public bool denyOverflowApplication;
 
+        /// <summary>
+        /// 溢出时清除堆叠
+        /// </summary>
 #if UNITY_EDITOR
         [VerticalGroup]
         [LabelWidth(LABEL_WIDTH)]
@@ -235,6 +310,9 @@ namespace GAS.Runtime
 #endif
         public bool clearStackOnOverflow;
 
+        /// <summary>
+        /// 溢出时触发的效果资产数组
+        /// </summary>
 #if UNITY_EDITOR
         [VerticalGroup]
         [LabelWidth(LABEL_WIDTH)]

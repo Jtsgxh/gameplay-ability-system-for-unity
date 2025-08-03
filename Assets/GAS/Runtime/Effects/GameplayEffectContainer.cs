@@ -16,8 +16,19 @@ namespace GAS.Runtime
     /// </remarks>
     public class GameplayEffectContainer
     {
+        /// <summary>
+        /// 容器拥有者
+        /// </summary>
         private readonly AbilitySystemComponent _owner;
+        
+        /// <summary>
+        /// 当前活跃的游戏效果实例列表
+        /// </summary>
         private readonly List<GameplayEffectSpec> _gameplayEffectSpecs = new List<GameplayEffectSpec>();
+        
+        /// <summary>
+        /// 缓存的游戏效果实例列表，用于安全遍历
+        /// </summary>
         private readonly List<GameplayEffectSpec> _cachedGameplayEffectSpecs = new List<GameplayEffectSpec>();
 
         public GameplayEffectContainer(AbilitySystemComponent owner)
@@ -25,6 +36,10 @@ namespace GAS.Runtime
             _owner = owner;
         }
 
+        /// <summary>
+        /// 容器状态变化事件
+        /// 当容器中的效果发生变化时触发
+        /// </summary>
         private event Action OnGameplayEffectContainerIsDirty;
 
         /// <summary>

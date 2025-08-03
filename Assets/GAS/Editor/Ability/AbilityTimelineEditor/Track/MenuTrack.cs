@@ -8,11 +8,11 @@ namespace GAS.Editor
     
     public class MenuTrack : TrackBase
     {
-        private Color _menuColor;
+        private Color _menuColor; // 菜单颜色
 
-        private Color _trackColor;
-        private Type _trackDataType;
-        private Type _trackType;
+        private Color _trackColor; // 轨道颜色
+        private Type _trackDataType; // 轨道数据类型
+        private Type _trackType; // 轨道类型
         private static TimelineAbilityAssetBase AbilityAsset => AbilityTimelineEditorWindow.Instance.AbilityAsset;
         private static AbilityTimelineEditorConfig Config => AbilityTimelineEditorWindow.Instance.Config;
         private static TimelineTrackView TrackView => AbilityTimelineEditorWindow.Instance.TrackView;

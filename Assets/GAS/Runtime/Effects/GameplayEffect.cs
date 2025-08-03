@@ -34,33 +34,99 @@ namespace GAS.Runtime
     /// </remarks>
     public class GameplayEffect
     {
+        /// <summary>
+        /// 游戏效果名称
+        /// </summary>
         public readonly string GameplayEffectName;
+        
+        /// <summary>
+        /// 效果持续时间策略
+        /// </summary>
         public readonly EffectsDurationPolicy DurationPolicy;
+        
+        /// <summary>
+        /// 效果持续时间（-1表示无限持续）
+        /// </summary>
         public readonly float Duration; // -1 represents infinite duration
+        
+        /// <summary>
+        /// 周期执行间隔时间
+        /// </summary>
         public readonly float Period;
+        
+        /// <summary>
+        /// 周期执行的游戏效果
+        /// </summary>
         public readonly GameplayEffect PeriodExecution;
+        
+        /// <summary>
+        /// 标签容器，管理效果相关的所有标签
+        /// </summary>
         public readonly GameplayEffectTagContainer TagContainer;
 
         // Cues
+        /// <summary>
+        /// 执行时触发的瞬时Cue数组
+        /// </summary>
         public readonly GameplayCueInstant[] CueOnExecute;
+        
+        /// <summary>
+        /// 移除时触发的瞬时Cue数组
+        /// </summary>
         public readonly GameplayCueInstant[] CueOnRemove;
+        
+        /// <summary>
+        /// 添加时触发的瞬时Cue数组
+        /// </summary>
         public readonly GameplayCueInstant[] CueOnAdd;
+        
+        /// <summary>
+        /// 激活时触发的瞬时Cue数组
+        /// </summary>
         public readonly GameplayCueInstant[] CueOnActivate;
+        
+        /// <summary>
+        /// 失活时触发的瞬时Cue数组
+        /// </summary>
         public readonly GameplayCueInstant[] CueOnDeactivate;
+        
+        /// <summary>
+        /// 持续期间的Cue数组
+        /// </summary>
         public readonly GameplayCueDurational[] CueDurational;
 
         // Modifiers
+        /// <summary>
+        /// 属性修饰符数组
+        /// </summary>
         public readonly GameplayEffectModifier[] Modifiers;
+        
+        /// <summary>
+        /// 执行计算数组
+        /// </summary>
         public readonly GameplayEffectExecutionCalculation[] Executions;
 
         // Granted Ability
+        /// <summary>
+        /// 授予的技能数组
+        /// </summary>
         public readonly GrantedAbilityFromEffect[] GrantedAbilities;
 
         //Stacking
+        /// <summary>
+        /// 堆叠策略配置
+        /// </summary>
         public readonly GameplayEffectStacking Stacking;
 
         // Expiration Effects - 对应UE中的过期效果
+        /// <summary>
+        /// 提前过期效果数组（被移除、驱散等情况下触发）
+        /// </summary>
         public readonly GameplayEffect[] PrematureExpirationEffects; // 提前过期（被移除、驱散等）
+        
+        /// <summary>
+        /// 正常过期效果数组（持续时间结束时触发）
+        /// </summary>
         public readonly GameplayEffect[] RoutineExpirationEffects;    // 正常过期（持续时间结束）
 
         /// <summary>

@@ -41,13 +41,40 @@ namespace GAS.Runtime
         /// 属性的短名称（不包含属性集前缀）
         /// </summary>
         public readonly string ShortName;
+        
+        /// <summary>
+        /// 当前值改变后的事件
+        /// </summary>
         protected event Action<AttributeBase, float, float> _onPostCurrentValueChange;
+        
+        /// <summary>
+        /// 基础值改变后的事件
+        /// </summary>
         protected event Action<AttributeBase, float, float> _onPostBaseValueChange;
+        
+        /// <summary>
+        /// 当前值改变前的事件
+        /// </summary>
         protected event Action<AttributeBase, float> _onPreCurrentValueChange;
+        
+        /// <summary>
+        /// 基础值改变前的事件
+        /// </summary>
         protected event Func<AttributeBase, float, float> _onPreBaseValueChange;
+        
+        /// <summary>
+        /// 基础值改变前的监听器列表
+        /// </summary>
         protected IEnumerable<Func<AttributeBase, float, float>> _preBaseValueChangeListeners;
 
+        /// <summary>
+        /// 属性的值结构
+        /// </summary>
         private AttributeValue _value;
+        
+        /// <summary>
+        /// 属性的拥有者组件
+        /// </summary>
         private AbilitySystemComponent _owner;
         /// <summary>
         /// 获取属性的拥有者组件

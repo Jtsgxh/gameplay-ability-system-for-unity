@@ -12,7 +12,7 @@ namespace GAS.Editor
     {
         private const int LABEL_WIDTH = 200;
         private const int SHORT_LABEL_WIDTH = 200;
-        private static GASSettingAsset _setting;
+        private static GASSettingAsset _setting; // GAS设置实例
 
 
         [Title(GASTextDefine.TITLE_SETTING, Bold = true)]

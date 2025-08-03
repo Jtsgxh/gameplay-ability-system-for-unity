@@ -11,6 +11,9 @@ namespace GAS.Runtime
         [InfoBox(GASTextDefine.CUE_ANIMATION_PATH_TIP)]
         [LabelText(GASTextDefine.CUE_ANIMATION_PATH)]
 #endif
+        /// <summary>
+        /// 动画机相对路径
+        /// </summary>
         [SerializeField]
         private string _animatorRelativePath;
 
@@ -19,6 +22,9 @@ namespace GAS.Runtime
         [InfoBox(GASTextDefine.CUE_ANIMATION_INCLUDE_CHILDREN_ANIMATOR_TIP)]
         [LabelText(GASTextDefine.CUE_ANIMATION_INCLUDE_CHILDREN)]
 #endif
+        /// <summary>
+        /// 是否包括子节点动画机
+        /// </summary>
         [SerializeField]
         private bool _includeChildrenAnimator;
 
@@ -26,6 +32,9 @@ namespace GAS.Runtime
         [BoxGroup]
         [LabelText(GASTextDefine.CUE_ANIMATION_STATE)]
 #endif
+        /// <summary>
+        /// 动画状态名
+        /// </summary>
         [SerializeField]
         private string _stateName;
 
@@ -71,6 +80,9 @@ namespace GAS.Runtime
 
     public class CueAnimationSpec : GameplayCueDurationalSpec<CueAnimation>
     {
+        /// <summary>
+        /// 动画机组件
+        /// </summary>
         private readonly Animator _animator;
 
         public CueAnimationSpec(CueAnimation cue, GameplayCueParameters parameters) : base(cue,

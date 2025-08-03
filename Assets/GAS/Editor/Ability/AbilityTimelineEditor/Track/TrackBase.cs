@@ -11,17 +11,17 @@ namespace GAS.Editor
     
     public abstract class TrackBase
     {
-        protected float _frameWidth;
-        protected TrackDataBase _trackData;
-        protected List<TrackItemBase> _trackItems = new();
-        protected VisualElement BoundingBox;
-        protected VisualElement Lock;
-        protected VisualElement MenuBox;
-        protected VisualElement MenuParent;
-        public VisualElement MenuRoot;
-        public Label MenuText;
-        protected VisualElement TrackParent;
-        public VisualElement TrackRoot;
+        protected float _frameWidth; // 帧宽度
+        protected TrackDataBase _trackData; // 轨道数据
+        protected List<TrackItemBase> _trackItems = new(); // 轨道项目列表
+        protected VisualElement BoundingBox; // 边界盒
+        protected VisualElement Lock; // 锁定元素
+        protected VisualElement MenuBox; // 菜单盒
+        protected VisualElement MenuParent; // 菜单父元素
+        public VisualElement MenuRoot; // 菜单根元素
+        public Label MenuText; // 菜单文本
+        protected VisualElement TrackParent; // 轨道父元素
+        public VisualElement TrackRoot; // 轨道根元素
         public List<TrackItemBase> TrackItems => _trackItems;
         public VisualElement Track { get; protected set; }
 
@@ -131,8 +131,8 @@ namespace GAS.Editor
         #region Select
 
         public bool Selected { get; private set; }
-        private static readonly Color MenuSelectedColor = new(0.5f, 0.5f, 0.5f, 1f);
-        private static readonly Color MenuUnSelectedColor = new(0.5f, 0.5f, 0.5f, 0f);
+        private static readonly Color MenuSelectedColor = new(0.5f, 0.5f, 0.5f, 1f); // 菜单选中颜色
+        private static readonly Color MenuUnSelectedColor = new(0.5f, 0.5f, 0.5f, 0f); // 菜单未选中颜色
 
         public void OnSelect()
         {

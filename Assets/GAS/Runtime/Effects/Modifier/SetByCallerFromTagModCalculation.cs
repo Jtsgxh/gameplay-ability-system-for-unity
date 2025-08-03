@@ -9,6 +9,13 @@ namespace GAS.Runtime
     public class SetByCallerFromTagModCalculation : ModifierMagnitudeCalculation
     {
 #if UNITY_EDITOR
+        /// <summary>
+        /// 用于从调用者设置的值映射中获取数值的游戏标签
+        /// </summary>
+        /// <remarks>
+        /// 该标签作为键值，用于在GameplayEffectSpec的标签映射中查找对应的数值。
+        /// 调用者需要在应用游戏效果时通过标签设置相应的数值
+        /// </remarks>
         [SerializeField]
         [ValueDropdown("@ValueDropdownHelper.GameplayTagChoices", HideChildProperties = true)]
 #endif

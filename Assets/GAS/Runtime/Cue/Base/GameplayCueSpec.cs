@@ -3,7 +3,13 @@ namespace GAS.Runtime
 {
     public abstract class GameplayCueSpec
     {
+        /// <summary>
+        /// 游戏提示
+        /// </summary>
         protected readonly GameplayCue _cue;
+        /// <summary>
+        /// 游戏提示参数
+        /// </summary>
         protected readonly GameplayCueParameters _parameters;
         public AbilitySystemComponent Owner { get; protected set; }
 

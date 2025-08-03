@@ -69,6 +69,9 @@ namespace GAS.Runtime
     public struct GameplayEffectModifier
     {
 #if UNITY_EDITOR
+        /// <summary>
+        /// 编辑器标签宽度常量
+        /// </summary>
         private const int LABEL_WIDTH = 70;
 
         [LabelText("修改属性", SdfIconType.Fingerprint)]

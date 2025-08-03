@@ -7,13 +7,13 @@ namespace GAS.Editor
 {
     public class GASSettingAggregator : OdinMenuEditorWindow
     {
-        private static GASSettingAsset _settingAsset;
+        private static GASSettingAsset _settingAsset; // GAS设置资源
 
-        private static GameplayTagsAsset _tagsAsset;
+        private static GameplayTagsAsset _tagsAsset; // 游戏标签资源
 
-        private static AttributeAsset _attributeAsset;
+        private static AttributeAsset _attributeAsset; // 属性资源
 
-        private static AttributeSetAsset _attributeSetAsset;
+        private static AttributeSetAsset _attributeSetAsset; // 属性集资源
 
         private static GASSettingAsset SettingAsset
         {

@@ -31,6 +31,9 @@ namespace GAS.Runtime
         /// </summary>
         public static IEnumerable<string> AttributeChoices => ReflectionHelper.AttributeNames;
 
+        /// <summary>
+        /// 缓存的游戏标签下拉选项数组
+        /// </summary>
         private static ValueDropdownItem[] _gameplayTagChoices;
 
         /// <summary>

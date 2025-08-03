@@ -16,9 +16,9 @@ namespace GAS.Editor
     public class AbilityTimelineEditorWindow : EditorWindow
     {
         [SerializeField]
-        private VisualTreeAsset m_VisualTreeAsset;
+        private VisualTreeAsset m_VisualTreeAsset; // 可视化树资源
 
-        private VisualElement _root;
+        private VisualElement _root; // 根视觉元素
 
 
         public static AbilityTimelineEditorWindow Instance { get; private set; }
@@ -99,8 +99,8 @@ namespace GAS.Editor
 
         public AbilityTimelineEditorConfig Config { get; } = new();
 
-        private ObjectField _abilityAsset;
-        private Button _btnShowAbilityAssetDetail;
+        private ObjectField _abilityAsset; // 能力资源对象字段
+        private Button _btnShowAbilityAssetDetail; // 显示能力资源详情按钮
         public TimelineAbilityAssetBase AbilityAsset => _abilityAsset.value as TimelineAbilityAssetBase;
 
         // private TimelineAbilityEditorWindow AbilityAssetEditor => AbilityAsset != null
@@ -142,11 +142,11 @@ namespace GAS.Editor
 
         #region TopBar
 
-        private string _previousScenePath;
-        private Button BtnLoadPreviewScene;
-        private Button BtnBackToScene;
-        private Button BtnChildInspector;
-        private ObjectField _previewObjectField;
+        private string _previousScenePath; // 前一个场景路径
+        private Button BtnLoadPreviewScene; // 加载预览场景按钮
+        private Button BtnBackToScene; // 返回场景按钮
+        private Button BtnChildInspector; // 子检视器按钮
+        private ObjectField _previewObjectField; // 预览对象字段
         public GameObject PreviewObject => _previewObjectField.value as GameObject;
 
         private void InitTopBar()
@@ -197,7 +197,7 @@ namespace GAS.Editor
 
         public TimerShaftView TimerShaftView { get; private set; }
 
-        private int _currentMaxFrame;
+        private int _currentMaxFrame; // 当前最大帧数
 
         public int CurrentMaxFrame
         {
@@ -220,7 +220,7 @@ namespace GAS.Editor
             }
         }
 
-        private int _currentSelectFrameIndex;
+        private int _currentSelectFrameIndex; // 当前选择的帧索引
 
         public int CurrentSelectFrameIndex
         {
@@ -254,12 +254,12 @@ namespace GAS.Editor
 
         #region Controller
 
-        private Button BtnPlay;
-        private Button BtnLeftFrame;
-        private Button BtnRightFrame;
-        private Button BtnLoop;
-        private IntegerField CurrentFrame;
-        private IntegerField MaxFrame;
+        private Button BtnPlay; // 播放按钮
+        private Button BtnLeftFrame; // 左帧按钮
+        private Button BtnRightFrame; // 右帧按钮
+        private Button BtnLoop; // 循环按钮
+        private IntegerField CurrentFrame; // 当前帧输入字段
+        private IntegerField MaxFrame; // 最大帧输入字段
 
         private void InitController()
         {
@@ -341,10 +341,10 @@ namespace GAS.Editor
 
         #region TimelinePreview
 
-        private DateTime _startTime;
-        private int _startPlayFrameIndex;
-        private bool _isPlaying;
-        private bool _isLoop;
+        private DateTime _startTime; // 开始时间
+        private int _startPlayFrameIndex; // 开始播放的帧索引
+        private bool _isPlaying; // 是否正在播放
+        private bool _isLoop; // 是否循环播放
 
         public bool IsPlaying
         {
@@ -417,12 +417,12 @@ namespace GAS.Editor
 
         #region DragSplitter
 
-        private VisualElement splitter;
-        private VisualElement leftPanel;
-        private VisualElement rightPanel;
-        private bool isDragging;
-        private float initialMouseX;
-        private float initialLeftWidth;
+        private VisualElement splitter; // 分隔条
+        private VisualElement leftPanel; // 左面板
+        private VisualElement rightPanel; // 右面板
+        private bool isDragging; // 是否正在拖拽
+        private float initialMouseX; // 初始鼠标X位置
+        private float initialLeftWidth; // 初始左面板宽度
 
         // 添加初始化分隔条的方法
         private void InitSplitter()
@@ -483,8 +483,8 @@ namespace GAS.Editor
 
         #region ClipInspector
 
-        private IMGUIContainer inspectorContainer;
-        private UnityEditor.Editor cachedEditor;
+        private IMGUIContainer inspectorContainer; // 检视器容器
+        private UnityEditor.Editor cachedEditor; // 缓存的编辑器
 
         public void InitClipInspector()
         {
@@ -534,8 +534,8 @@ namespace GAS.Editor
 
         #region SyncScrollViews
 
-        private ScrollView trackMenuScroll;
-        private ScrollView mainContentScroll;
+        private ScrollView trackMenuScroll; // 轨道菜单滚动视图
+        private ScrollView mainContentScroll; // 主内容滚动视图
         private void InitSyncScrollViews()
         {
             trackMenuScroll = _root.Q<ScrollView>("TrackMenuScroll");

@@ -10,36 +10,54 @@ namespace GAS.Runtime
         [BoxGroup]
         [LabelText(GASTextDefine.CUE_VFX_PREFAB)]
 #endif
+        /// <summary>
+        /// VFX特效预制件
+        /// </summary>
         public GameObject VfxPrefab;
 
 #if UNITY_EDITOR
         [BoxGroup]
         [LabelText(GASTextDefine.CUE_ATTACH_TO_OWNER)]
 #endif
+        /// <summary>
+        /// 是否附加到目标对象
+        /// </summary>
         public bool IsAttachToTarget = true;
 
 #if UNITY_EDITOR
         [BoxGroup]
         [LabelText(GASTextDefine.CUE_VFX_OFFSET)]
 #endif
+        /// <summary>
+        /// VFX相对于目标的位置偏移
+        /// </summary>
         public Vector3 Offset;
 
 #if UNITY_EDITOR
         [BoxGroup]
         [LabelText(GASTextDefine.CUE_VFX_ROTATION)]
 #endif
+        /// <summary>
+        /// VFX的旋转角度
+        /// </summary>
         public Vector3 Rotation;
 
 #if UNITY_EDITOR
         [BoxGroup]
         [LabelText(GASTextDefine.CUE_VFX_SCALE)]
 #endif
+        /// <summary>
+        /// VFX的缩放大小
+        /// </summary>
         public Vector3 Scale = Vector3.one;
         
 #if UNITY_EDITOR
         [BoxGroup]
         [LabelText(GASTextDefine.CUE_VFX_ACTIVE_WHEN_ADDED)]
 #endif
+        /// <summary>
+        /// 是否在添加时就激活
+        /// </summary>
         public bool ActiveWhenAdded = false;
 
         public override GameplayCueDurationalSpec CreateSpec(GameplayCueParameters parameters)
@@ -48,6 +66,9 @@ namespace GAS.Runtime
         }
 
 #if UNITY_EDITOR
+        /// <summary>
+        /// 预览效果实例
+        /// </summary>
         private GameObject _effectPreviewInstance;
         public override void OnEditorPreview(GameObject preview, int frameIndex, int startFrame, int endFrame)
         {
@@ -91,6 +112,9 @@ namespace GAS.Runtime
 
     public class CueVFXSpec : GameplayCueDurationalSpec<CueVFX>
     {
+        /// <summary>
+        /// VFX实例对象
+        /// </summary>
         private GameObject _vfxInstance;
 
         public CueVFXSpec(CueVFX cue, GameplayCueParameters parameters) : base(cue,

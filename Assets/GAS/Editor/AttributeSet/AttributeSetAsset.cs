@@ -15,9 +15,9 @@ namespace GAS.Editor
     [Serializable]
     public class AttributeSetConfig
     {
-        public static AttributeSetAsset ParentAsset;
+        public static AttributeSetAsset ParentAsset; // 父资源
 
-        private static IEnumerable AttributeChoices = new ValueDropdownList<string>();
+        private static IEnumerable AttributeChoices = new ValueDropdownList<string>(); // 属性选择列表
 
         [HorizontalGroup("A")]
         [HorizontalGroup("A/R", order: 1)]
@@ -101,7 +101,7 @@ namespace GAS.Editor
         [HideLabel]
         [ShowIf("ExistDuplicatedAttributeSetName")]
         [DisplayAsString(TextAlignment.Left, true)]
-        public string ERROR_DuplicatedAttributeSet = "";
+        public string ERROR_DuplicatedAttributeSet = ""; // 重复属性集错误信息
 
         [VerticalGroup("AttributeSetConfigs", order: 1)]
         [ListDrawerSettings(ShowFoldout = true,
@@ -109,7 +109,7 @@ namespace GAS.Editor
             CustomRemoveElementFunction = "OnRemoveElement",
             CustomRemoveIndexFunction = "OnRemoveIndex", OnTitleBarGUI = "DrawAttributeSetConfigsButtons")]
         [Searchable]
-        public List<AttributeSetConfig> AttributeSetConfigs = new List<AttributeSetConfig>();
+        public List<AttributeSetConfig> AttributeSetConfigs = new List<AttributeSetConfig>(); // 属性集配置列表
 
         private void DrawAttributeSetConfigsButtons()
         {

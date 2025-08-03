@@ -2,17 +2,47 @@
 
 namespace GAS.Runtime
 {
+    /// <summary>
+    /// 游戏效果周期计时器
+    /// 负责管理具有周期性执行的游戏效果的时间控制
+    /// </summary>
+    /// <remarks>
+    /// 周期计时器的主要功能：
+    /// - 跟踪周期执行的剩余时间
+    /// - 处理周期性效果的触发
+    /// - 管理效果的过期逻辑
+    /// - 处理堆叠效果的过期策略
+    /// 
+    /// 时间精度说明：
+    /// - 周期小于0.01秒可能出现精度误差
+    /// - 使用Unity的Time.time和Time.deltaTime进行计算
+    /// - 自动处理帧率波动对周期精度的影响
+    /// </remarks>
     public class GameplayEffectPeriodTicker
     {
+        /// <summary>
+        /// 周期剩余时间
+        /// </summary>
         private float _periodRemaining;
+        
+        /// <summary>
+        /// 关联的游戏效果实例
+        /// </summary>
         private readonly GameplayEffectSpec _spec;
 
+        /// <summary>
+        /// 构造函数，初始化周期计时器
+        /// </summary>
+        /// <param name="spec">要管理的游戏效果实例</param>
         public GameplayEffectPeriodTicker(GameplayEffectSpec spec)
         {
             _spec = spec;
             _periodRemaining = Period;
         }
 
+        /// <summary>
+        /// 周期时间（只读属性）
+        /// </summary>
         private float Period => _spec.GameplayEffect.Period;
 
         public void Tick()
@@ -88,6 +118,9 @@ namespace GAS.Runtime
                 // 不能直接将_periodRemaining置为0, 这将累计误差
                 _periodRemaining += Period;
                 _spec.PeriodExecution?.TriggerOnExecute();
+                
+                // 执行支持周期执行的ExecutionCalculation
+                _spec.TriggerOnPeriodExecute();
             }
         }
 

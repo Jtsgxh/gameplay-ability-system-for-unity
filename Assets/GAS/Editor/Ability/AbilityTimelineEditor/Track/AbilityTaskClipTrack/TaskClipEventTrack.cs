@@ -8,7 +8,7 @@ namespace GAS.Editor
 
     public class TaskClipEventTrack:TrackBase
     {
-        private TaskClipEventTrackData _taskClipEventTrackData;
+        private TaskClipEventTrackData _taskClipEventTrackData; // 任务剪辑事件轨道数据
         public override Type TrackDataType => typeof(TaskClipEventTrackData);
         protected override Color TrackColor => new Color(0.7f, 0.3f, 0.7f, 0.2f);
         protected override Color MenuColor => new Color(0.5f, 0.3f, 0.5f, 1);

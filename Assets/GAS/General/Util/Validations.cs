@@ -4,7 +4,13 @@ namespace GAS.General.Validation
 {
     public readonly struct ValidationResult
     {
+        /// <summary>
+        /// 是否有效
+        /// </summary>
         public readonly bool IsValid;
+        /// <summary>
+        /// 验证结果消息
+        /// </summary>
         public readonly string Message;
 
         public ValidationResult(bool isValid, string message)
@@ -24,7 +30,13 @@ namespace GAS.General.Validation
         // https://learn.microsoft.com/zh-cn/dotnet/csharp/fundamentals/coding-style/identifier-names
         // 可以在标识符上使用 @ 前缀来声明与 C# 关键字匹配的标识符。 @ 不是标识符名称的一部分。 例如，@if 声明名为 if 的标识符。
         // 因此类似 @123abc 这样的标识符是不合法的。因为抛开@之后, 它实际上是以数字开头。
+        /// <summary>
+        /// 变量名正则表达式模式
+        /// </summary>
         private const string VariableNamePattern = @"^@?[a-zA-Z_][a-zA-Z0-9_]*$";
+        /// <summary>
+        /// 变量名正则表达式
+        /// </summary>
         public static readonly Regex VariableNameRegex = new Regex(VariableNamePattern);
 
         public static ValidationResult ValidateVariableName(string name)

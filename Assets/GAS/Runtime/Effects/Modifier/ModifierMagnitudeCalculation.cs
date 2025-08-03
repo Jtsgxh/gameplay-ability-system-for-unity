@@ -9,6 +9,13 @@ namespace GAS.Runtime
     {
         protected const int WIDTH_LABEL = 70;
 
+        /// <summary>
+        /// 修饰器幅值计算描述信息
+        /// </summary>
+        /// <remarks>
+        /// 用于在编辑器中显示该MMC的功能说明和使用方法，
+        /// 帮助开发者理解该计算器的作用和配置方式
+        /// </remarks>
         [TitleGroup("Base")]
         [HorizontalGroup("Base/H1", width: 1 - 0.618f)]
         [TabGroup("Base/H1/V1", "Summary", SdfIconType.InfoSquareFill, TextColor = "#0BFFC5", Order = 1)]

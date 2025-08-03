@@ -7,16 +7,31 @@ namespace GAS.Runtime
 {
     public class GameplayTagAggregator
     {
+        /// <summary>
+        /// 标签聚合器的拥有者组件
+        /// </summary>
         private AbilitySystemComponent _owner;
 
+        /// <summary>
+        /// 动态添加的标签字典，值为添加这些标签的对象列表
+        /// </summary>
         private Dictionary<GameplayTag, List<object>> _dynamicAddedTags =
             new Dictionary<GameplayTag, List<object>>();
 
+        /// <summary>
+        /// 动态移除的标签字典，值为移除这些标签的对象列表
+        /// </summary>
         private Dictionary<GameplayTag, List<object>> _dynamicRemovedTags =
             new Dictionary<GameplayTag, List<object>>();
 
+        /// <summary>
+        /// 固定标签列表，不会被动态修改
+        /// </summary>
         private readonly List<GameplayTag> _fixedTags = new List<GameplayTag>();
 
+        /// <summary>
+        /// 对象池，用于复用List<object>对象
+        /// </summary>
         private static Pool _pool = new Pool(typeof(List<object>), 1024);
 
         public GameplayTagAggregator(AbilitySystemComponent owner)
@@ -49,6 +64,9 @@ namespace GAS.Runtime
             return list;
         }
 
+        /// <summary>
+        /// 标签状态改变时触发的事件
+        /// </summary>
         private event Action OnTagIsDirty;
         
         /// <summary>

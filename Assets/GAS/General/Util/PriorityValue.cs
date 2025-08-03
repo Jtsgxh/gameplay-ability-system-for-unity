@@ -23,7 +23,13 @@ namespace GAS.General
         }
 #endif
 
-        private readonly List<Data> _datas; // 按优先级降序排列
+        /// <summary>
+        /// 数据列表，按优先级降序排列
+        /// </summary>
+        private readonly List<Data> _datas;
+        /// <summary>
+        /// 线程同步锁
+        /// </summary>
         private readonly object _lock;
 
         public string CurrentKey
@@ -83,11 +89,20 @@ namespace GAS.General
             }
         }
 
+        /// <summary>
+        /// 默认数据
+        /// </summary>
         private Data _defaultData;
+        /// <summary>
+        /// 当前数据
+        /// </summary>
         private Data _currentData;
 
         public delegate void PostValueChanged(T oldValue, T newValue);
 
+        /// <summary>
+        /// 值变更后事件
+        /// </summary>
         private event PostValueChanged OnPostValueChanged;
 
         public PriorityValue() : this(default)
@@ -280,6 +295,9 @@ namespace GAS.General
     /// </summary>
     public sealed class PriorityValueToggle<T> : IDisposable
     {
+        /// <summary>
+        /// 存储的数据
+        /// </summary>
         private PriorityValue<T>.Data _data;
         public PriorityValue<T> PriorityValue { get; }
 
@@ -317,6 +335,9 @@ namespace GAS.General
             }
         }
 
+        /// <summary>
+        /// 是否启用
+        /// </summary>
         private bool _isEnabled;
 
         public bool IsEnabled

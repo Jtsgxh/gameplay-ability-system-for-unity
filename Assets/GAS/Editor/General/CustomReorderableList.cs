@@ -9,13 +9,13 @@ namespace GAS.Editor.General
     
     public class CustomReorderableList<T>
     {
-        private List<T> _itemList = new List<T>();
-        private ReorderableList reorderableList;
-        private ReorderableList.HeaderCallbackDelegate _drawListHeader;
-        private Action<int, T> _onEdit;
-        private Action<Rect,T,int> _itemGUIDraw;
-        private ReorderableList.ElementHeightCallbackDelegate _getElementHeight;
-        ReorderableList.AddCallbackDelegate _onAddListItem;
+        private List<T> _itemList = new List<T>(); // 项目列表
+        private ReorderableList reorderableList; // 可重排列表
+        private ReorderableList.HeaderCallbackDelegate _drawListHeader; // 绘制列表头委托
+        private Action<int, T> _onEdit; // 编辑回调
+        private Action<Rect,T,int> _itemGUIDraw; // 项目GUI绘制回调
+        private ReorderableList.ElementHeightCallbackDelegate _getElementHeight; // 获取元素高度委托
+        ReorderableList.AddCallbackDelegate _onAddListItem; // 添加列表项委托
         public CustomReorderableList(
             List<T> itemList ,
             ReorderableList.HeaderCallbackDelegate drawListHeader,

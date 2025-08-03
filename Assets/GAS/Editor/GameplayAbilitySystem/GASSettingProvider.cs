@@ -8,8 +8,8 @@ namespace GAS.Editor
     
     public class GASSettingProvider: SettingsProvider
     {
-        private  GASSettingAsset _asset;
-        private  Editor _editor;
+        private  GASSettingAsset _asset; // GAS设置资源
+        private  Editor _editor; // 编辑器实例
         
         public GASSettingProvider() : base("Project/EX Gameplay Ability System", SettingsScope.Project)
         {
@@ -49,7 +49,7 @@ namespace GAS.Editor
             EditorGUILayout.EndVertical();
         }
 
-        static GASSettingProvider provider;
+        static GASSettingProvider provider; // 设置提供器实例
         [SettingsProvider]
         public static SettingsProvider CreateMyCustomSettingsProvider()
         {

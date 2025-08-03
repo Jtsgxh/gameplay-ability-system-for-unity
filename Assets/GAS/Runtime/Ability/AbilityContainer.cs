@@ -17,8 +17,22 @@ namespace GAS.Runtime
     /// </remarks>
     public class AbilityContainer
     {
+        /// <summary>
+        /// 拥有此技能容器的AbilitySystemComponent组件
+        /// 用于提供技能的上下文和执行环境
+        /// </summary>
         private readonly AbilitySystemComponent _owner;
+        
+        /// <summary>
+        /// 技能实例字典，以技能名称作为键存储所有已授予的技能
+        /// 提供快速的技能查找和管理功能
+        /// </summary>
         private readonly Dictionary<string, AbilitySpec> _abilities = new Dictionary<string, AbilitySpec>();
+        
+        /// <summary>
+        /// 缓存的技能实例列表，用于避免频繁的字典遍历操作
+        /// 当前未使用，保留供未来优化
+        /// </summary>
         private readonly List<AbilitySpec> _cachedAbilities = new List<AbilitySpec>();
 
         public AbilityContainer(AbilitySystemComponent owner)

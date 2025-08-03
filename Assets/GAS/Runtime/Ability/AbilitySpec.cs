@@ -18,6 +18,10 @@ namespace GAS.Runtime
     /// </remarks>
     public abstract class AbilitySpec
     {
+        /// <summary>
+        /// 技能激活时传递的参数数组
+        /// 存储调用TryActivateAbility时传入的所有参数，供技能执行期间使用
+        /// </summary>
         protected object[] _abilityArguments = Array.Empty<object>();
 
         /// <summary>

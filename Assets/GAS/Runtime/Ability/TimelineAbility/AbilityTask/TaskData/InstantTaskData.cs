@@ -48,11 +48,20 @@ namespace GAS.Runtime
 
         #region SonTypes
 
+        /// <summary>
+        /// 缓存的瞬时任务子类型数组
+        /// </summary>
         private static Type[] _instantTaskSonTypes;
 
+        /// <summary>
+        /// 获取所有瞬时任务的子类型数组
+        /// </summary>
         public static Type[] InstantTaskSonTypes =>
             _instantTaskSonTypes ??= TypeUtil.GetAllSonTypesOf(typeof(InstantAbilityTask));
 
+        /// <summary>
+        /// 获取瞬时任务子类型的全名称列表，用于编辑器下拉选择
+        /// </summary>
         public static List<string> InstantTaskSonTypeChoices
         {
             get

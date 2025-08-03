@@ -11,6 +11,9 @@ namespace GAS.Runtime
     {
         #region AttributeSetNames
 
+        /// <summary>
+        /// 缓存的属性集名称数组
+        /// </summary>
         private static string[] _attributeSetNames;
 
         public static IEnumerable<string> AttributeSetNames
@@ -53,6 +56,9 @@ namespace GAS.Runtime
 
         #region AttributeNames
 
+        /// <summary>
+        /// 缓存的属性名称数组
+        /// </summary>
         private static string[] _attributeNames;
 
         public static IEnumerable<string> AttributeNames
@@ -95,6 +101,9 @@ namespace GAS.Runtime
 
         #region Attributes
 
+        /// <summary>
+        /// 缓存的属性对象数组
+        /// </summary>
         private static AttributeBase[] _attributes;
 
         public static IEnumerable<AttributeBase> Attributes
@@ -115,6 +124,9 @@ namespace GAS.Runtime
             }).ToArray();
         }
 
+        /// <summary>
+        /// 属性字典缓存，用于快速查找属性
+        /// </summary>
         private static Dictionary<string, AttributeBase> _attributeDict;
 
         public static AttributeBase GetAttribute(string attributeFullName)
@@ -156,6 +168,9 @@ namespace GAS.Runtime
 
         #region GameplayTags
 
+        /// <summary>
+        /// 缓存的游戏标签数组
+        /// </summary>
         private static GameplayTag[] _gameplayTags;
 
         public static IEnumerable<GameplayTag> GameplayTags

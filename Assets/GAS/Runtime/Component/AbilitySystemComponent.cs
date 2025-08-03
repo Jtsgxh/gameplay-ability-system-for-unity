@@ -21,6 +21,9 @@ namespace GAS.Runtime
 
         public AttributeSetContainer AttributeSetContainer { get; private set; }
 
+        /// <summary>
+        /// 标记组件是否已经准备完毕
+        /// </summary>
         private bool _ready;
 
         private void Prepare()
@@ -554,5 +557,175 @@ namespace GAS.Runtime
         {
             GameplayEffectContainer.ClearGameplayEffect();
         }
+        
+        #region EVENT PUBLISHING
+        
+        /// <summary>
+        /// 发布游戏事件到事件总线
+        /// </summary>
+        /// <param name="eventName">事件名称</param>
+        /// <param name="target">事件目标（可选）</param>
+        /// <param name="eventTags">事件标签（可选）</param>
+        /// <param name="parameters">事件参数（可选）</param>
+        /// <remarks>
+        /// 通过事件总线发布事件，所有订阅此事件的监听器都会收到通知。
+        /// 这是触发EventExecutionCondition的主要方式。
+        /// </remarks>
+        /// <example>
+        /// // 发布伤害事件
+        /// var damageParams = new Dictionary&lt;string, object&gt;
+        /// {
+        ///     { "damage", 100f },
+        ///     { "damageType", "Physical" }
+        /// };
+        /// attacker.PublishGameplayEvent(GameplayEvents.OnDamageDealt, target, null, damageParams);
+        /// </example>
+        public void PublishGameplayEvent(
+            string eventName, 
+            AbilitySystemComponent target = null,
+            GameplayTag[] eventTags = null, 
+            Dictionary<string, object> parameters = null)
+        {
+            if (string.IsNullOrEmpty(eventName))
+            {
+                Debug.LogWarning("Cannot publish event with null or empty name");
+                return;
+            }
+            
+            GameplayEventBus.Instance.Publish(eventName, this, target, eventTags, parameters);
+        }
+        
+        /// <summary>
+        /// 发布伤害相关事件
+        /// </summary>
+        /// <param name="damageAmount">伤害数值</param>
+        /// <param name="target">伤害目标</param>
+        /// <param name="damageType">伤害类型标签（可选）</param>
+        /// <param name="isDealt">true表示造成伤害，false表示受到伤害</param>
+        public void PublishDamageEvent(float damageAmount, AbilitySystemComponent target, GameplayTag? damageType = null, bool isDealt = true)
+        {
+            var eventName = isDealt ? GameplayEvents.OnDamageDealt : GameplayEvents.OnDamageReceived;
+            var parameters = new Dictionary<string, object>
+            {
+                { "damage", damageAmount },
+                { "target", target }
+            };
+            
+            if (damageType.HasValue)
+            {
+                parameters["damageType"] = damageType.Value;
+            }
+            
+            var eventTags = damageType.HasValue ? new[] { damageType.Value } : null;
+            PublishGameplayEvent(eventName, target, eventTags, parameters);
+        }
+        
+        /// <summary>
+        /// 发布治疗相关事件
+        /// </summary>
+        /// <param name="healAmount">治疗数值</param>
+        /// <param name="target">治疗目标</param>
+        /// <param name="healType">治疗类型标签（可选）</param>
+        /// <param name="isDealt">true表示提供治疗，false表示受到治疗</param>
+        public void PublishHealingEvent(float healAmount, AbilitySystemComponent target, GameplayTag? healType = null, bool isDealt = true)
+        {
+            var eventName = isDealt ? GameplayEvents.OnHealingDealt : GameplayEvents.OnHealingReceived;
+            var parameters = new Dictionary<string, object>
+            {
+                { "healing", healAmount },
+                { "target", target }
+            };
+            
+            if (healType.HasValue)
+            {
+                parameters["healType"] = healType.Value;
+            }
+            
+            var eventTags = healType.HasValue ? new[] { healType.Value } : null;
+            PublishGameplayEvent(eventName, target, eventTags, parameters);
+        }
+        
+        /// <summary>
+        /// 发布技能相关事件
+        /// </summary>
+        /// <param name="abilityName">技能名称</param>
+        /// <param name="eventType">事件类型（激活、结束等）</param>
+        /// <param name="target">技能目标（可选）</param>
+        public void PublishAbilityEvent(string abilityName, string eventType, AbilitySystemComponent target = null)
+        {
+            var parameters = new Dictionary<string, object>
+            {
+                { "abilityName", abilityName }
+            };
+            
+            if (target != null)
+            {
+                parameters["target"] = target;
+            }
+            
+            PublishGameplayEvent(eventType, target, null, parameters);
+        }
+        
+        /// <summary>
+        /// 发布标签变化事件
+        /// </summary>
+        /// <param name="tag">变化的标签</param>
+        /// <param name="isAdded">true表示添加，false表示移除</param>
+        /// <param name="stackCount">堆叠数量（可选）</param>
+        public void PublishTagEvent(GameplayTag tag, bool isAdded, int stackCount = 1)
+        {
+            var eventName = isAdded ? GameplayEvents.OnTagAdded : GameplayEvents.OnTagRemoved;
+            var parameters = new Dictionary<string, object>
+            {
+                { "tag", tag },
+                { "stackCount", stackCount }
+            };
+            
+            var eventTags = new[] { tag };
+            PublishGameplayEvent(eventName, null, eventTags, parameters);
+        }
+        
+        /// <summary>
+        /// 发布游戏效果相关事件
+        /// </summary>
+        /// <param name="effectSpec">游戏效果实例</param>
+        /// <param name="eventType">事件类型（应用、移除等）</param>
+        public void PublishGameplayEffectEvent(GameplayEffectSpec effectSpec, string eventType)
+        {
+            if (effectSpec == null) return;
+            
+            var parameters = new Dictionary<string, object>
+            {
+                { "effectSpec", effectSpec },
+                { "effectName", effectSpec.GameplayEffect.GameplayEffectName }
+            };
+            
+            PublishGameplayEvent(eventType, null, null, parameters);
+        }
+        
+        /// <summary>
+        /// 发布属性变化事件
+        /// </summary>
+        /// <param name="attributeName">属性名称</param>
+        /// <param name="oldValue">旧值</param>
+        /// <param name="newValue">新值</param>
+        /// <param name="eventType">事件类型（PreChange, PostChange等）</param>
+        public void PublishAttributeEvent(string attributeName, float oldValue, float newValue, string eventType = null)
+        {
+            if (string.IsNullOrEmpty(attributeName)) return;
+            
+            var finalEventType = eventType ?? GameplayEvents.OnAttributeChanged;
+            var parameters = new Dictionary<string, object>
+            {
+                { "attributeName", attributeName },
+                { "oldValue", oldValue },
+                { "newValue", newValue },
+                { "delta", newValue - oldValue }
+            };
+            
+            PublishGameplayEvent(finalEventType, null, null, parameters);
+        }
+        
+        #endregion
     }
 }

@@ -10,18 +10,18 @@ namespace GAS.Editor
 
     public class TimelineTrackView
     {
-        private static List<Type> _trackTypeList;
-        private static readonly Dictionary<string, Type> _trackTypeMap = new();
-        private readonly VisualElement _root;
-        private Button _btnAddTrack;
-        private VisualElement _contentTrackListParent;
-        private MenuTrack _menuBuffGameplayEffect;
-        private MenuTrack _menuDurationalCue;
-        private MenuTrack _menuInstantCue;
-        private MenuTrack _menuInstantTask;
-        private MenuTrack _menuOngoingTask;
-        private MenuTrack _menuReleaseGameplayEffect;
-        private VisualElement _trackMenuParent;
+        private static List<Type> _trackTypeList; // 轨道类型列表
+        private static readonly Dictionary<string, Type> _trackTypeMap = new(); // 轨道类型映射
+        private readonly VisualElement _root; // 根视觉元素
+        private Button _btnAddTrack; // 添加轨道按钮
+        private VisualElement _contentTrackListParent; // 内容轨道列表父元素
+        private MenuTrack _menuBuffGameplayEffect; // Buff游戏效果菜单轨道
+        private MenuTrack _menuDurationalCue; // 持续提示菜单轨道
+        private MenuTrack _menuInstantCue; // 瞬时提示菜单轨道
+        private MenuTrack _menuInstantTask; // 瞬时任务菜单轨道
+        private MenuTrack _menuOngoingTask; // 持续任务菜单轨道
+        private MenuTrack _menuReleaseGameplayEffect; // 释放游戏效果菜单轨道
+        private VisualElement _trackMenuParent; // 轨道菜单父元素
 
         public TimelineTrackView(VisualElement root)
         {

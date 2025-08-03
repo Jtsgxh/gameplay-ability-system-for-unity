@@ -9,10 +9,25 @@ namespace GAS.General
     /// </summary>
     public class Pool
     {
+        /// <summary>
+        /// 对象类型
+        /// </summary>
         private readonly Type ObjectType;
+        /// <summary>
+        /// 最大容量
+        /// </summary>
         private readonly int MaxCapacity;
+        /// <summary>
+        /// 当前项目数量
+        /// </summary>
         private int NumItems;
+        /// <summary>
+        /// 线程安全的对象队列
+        /// </summary>
         private readonly ConcurrentQueue<object> _items = new();
+        /// <summary>
+        /// 快速存取的项目
+        /// </summary>
         private object FastItem;
 
         public Pool(Type objectType, int maxCapacity)

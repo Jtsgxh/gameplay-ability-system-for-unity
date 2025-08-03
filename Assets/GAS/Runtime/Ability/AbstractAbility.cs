@@ -17,19 +17,44 @@ namespace GAS.Runtime
     /// </remarks>
     public abstract class AbstractAbility
     {
+        /// <summary>
+        /// 技能的唯一标识名称
+        /// 从AbilityAsset的UniqueName字段获取，用于技能的查找和管理
+        /// </summary>
         public readonly string Name;
+        
+        /// <summary>
+        /// 技能资产数据引用
+        /// 包含技能的所有配置信息，如标签、消耗、冷却等
+        /// </summary>
         public readonly AbilityAsset DataReference;
 
         // TODO : AbilityTask
         // public List<OngoingAbilityTask> OngoingAbilityTasks=new List<OngoingAbilityTask>();
         // public List<AsyncAbilityTask> AsyncAbilityTasks = new List<AsyncAbilityTask>();
 
+        /// <summary>
+        /// 技能标签容器
+        /// 包含技能的所有标签配置，如激活条件、阻止条件、资产标签等
+        /// </summary>
         public AbilityTagContainer Tag { get; protected set; }
 
+        /// <summary>
+        /// 技能冷却效果
+        /// 技能使用后应用的冷却GameplayEffect，为null表示无冷却
+        /// </summary>
         public GameplayEffect Cooldown { get; protected set; }
 
+        /// <summary>
+        /// 技能冷却时间（秒）
+        /// 技能使用后需要等待的时间，影响冷却效果的持续时间
+        /// </summary>
         public float CooldownTime { get; protected set; }
 
+        /// <summary>
+        /// 技能消耗效果
+        /// 技能激活时应用的消耗GameplayEffect，为null表示无消耗
+        /// </summary>
         public GameplayEffect Cost { get; protected set; }
 
         public AbstractAbility(AbilityAsset abilityAsset)

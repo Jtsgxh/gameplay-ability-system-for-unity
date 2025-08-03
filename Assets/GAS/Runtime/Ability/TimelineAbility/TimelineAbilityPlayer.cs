@@ -7,51 +7,102 @@ namespace GAS.Runtime
 {
     internal abstract class RuntimeClipInfo
     {
+        /// <summary>
+        /// 结束帧索引
+        /// </summary>
         public int endFrame;
+        /// <summary>
+        /// 开始帧索引
+        /// </summary>
         public int startFrame;
     }
 
     internal class RuntimeDurationCueClip : RuntimeClipInfo
     {
+        /// <summary>
+        /// 持续性Cue规格实例
+        /// </summary>
         public GameplayCueDurationalSpec cueSpec;
     }
 
     internal class RuntimeBuffClip : RuntimeClipInfo
     {
+        /// <summary>
+        /// Buff游戏效果资产
+        /// </summary>
         public GameplayEffect buff;
+        /// <summary>
+        /// Buff游戏效果运行时实例
+        /// </summary>
         public GameplayEffectSpec buffSpec;
     }
 
     internal class RuntimeTaskClip : RuntimeClipInfo
     {
+        /// <summary>
+        /// 持续性技能任务实例
+        /// </summary>
         public OngoingAbilityTask task;
     }
 
     internal class RuntimeTaskMark
     {
+        /// <summary>
+        /// 开始帧索引
+        /// </summary>
         public int startFrame;
+        /// <summary>
+        /// 瞬时技能任务实例
+        /// </summary>
         public InstantAbilityTask task;
     }
 
     public class TimelineAbilityPlayer<T> where T : AbstractAbility
     {
+        /// <summary>
+        /// 技能规格实例引用
+        /// </summary>
         private readonly TimelineAbilitySpecT<T> _abilitySpec;
+        /// <summary>
+        /// 缓存的Buff游戏效果轨道数据
+        /// </summary>
         private readonly List<RuntimeBuffClip> _cacheBuffGameplayEffectTrack = new();
 
+        /// <summary>
+        /// 缓存的持续性Cue轨道数据
+        /// </summary>
         private readonly List<RuntimeDurationCueClip> _cacheDurationalCueTrack = new();
 
+        /// <summary>
+        /// 缓存的瞬时Cue事件数据
+        /// </summary>
         private readonly List<InstantCueMarkEvent> _cacheInstantCues = new();
 
+        /// <summary>
+        /// 缓存的瞬时任务标记数据
+        /// </summary>
         private readonly List<RuntimeTaskMark> _cacheInstantTasks = new();
+        /// <summary>
+        /// 缓存的持续性任务轨道数据
+        /// </summary>
         private readonly List<RuntimeTaskClip> _cacheOngoingTaskTrack = new();
 
+        /// <summary>
+        /// 缓存的释放游戏效果标记事件数据
+        /// </summary>
         private readonly List<ReleaseGameplayEffectMarkEvent> _cacheReleaseGameplayEffect = new();
 
         // cache for target catcher, avoid new in TickFrame
         // 这个是一个泛型类, 这个变量就不作为static了
         private readonly List<AbilitySystemComponent> _targets = new();
 
+        /// <summary>
+        /// 当前播放帧索引
+        /// </summary>
         private int _currentFrame;
+        /// <summary>
+        /// 总播放时间
+        /// </summary>
         private float _playTotalTime;
 
         public TimelineAbilityPlayer(TimelineAbilitySpecT<T> abilitySpec)
