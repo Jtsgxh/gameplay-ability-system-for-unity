@@ -281,11 +281,17 @@ namespace GAS.Editor
                 ScriptableObjectCreator.ShowDialog<GameplayCue>(directoryInfo.RootDirectory,
                     TrySelectMenuItemWithObject);
             else if (directoryInfo.AssetType == _types[2])
-                ScriptableObjectCreator.ShowDialog<GameplayEffectAsset>(directoryInfo.RootDirectory,
-                    TrySelectMenuItemWithObject);
+            {
+                // Note: GameplayEffectAsset is no longer a ScriptableObject in .NET version
+                // This editor functionality is disabled for pure .NET compatibility
+                UnityEngine.Debug.LogWarning("GameplayEffectAsset creation via ScriptableObjectCreator is not supported in .NET version");
+            }
             else if (directoryInfo.AssetType == _types[3])
-                ScriptableObjectCreator.ShowDialog<AbilityAsset>(directoryInfo.RootDirectory,
-                    TrySelectMenuItemWithObject);
+            {
+                // Note: AbilityAsset is no longer a ScriptableObject in .NET version
+                // This editor functionality is disabled for pure .NET compatibility
+                UnityEngine.Debug.LogWarning("AbilityAsset creation via ScriptableObjectCreator is not supported in .NET version");
+            }
             else if (directoryInfo.AssetType == _types[4])
                 ScriptableObjectCreator.ShowDialog<AbilitySystemComponentPreset>(directoryInfo.RootDirectory,
                     TrySelectMenuItemWithObject);

@@ -1,60 +1,35 @@
+using System;
 using GAS.General;
-using Sirenix.OdinInspector;
-using UnityEngine;
 
 namespace GAS.Runtime
 {
     public class CueVFX : GameplayCueDurational
     {
-#if UNITY_EDITOR
-        [BoxGroup]
-        [LabelText(GASTextDefine.CUE_VFX_PREFAB)]
-#endif
         /// <summary>
-        /// VFX特效预制件
+        /// VFX特效预制件（.NET版本中不可用）
         /// </summary>
-        public GameObject VfxPrefab;
+        public object VfxPrefab;
 
-#if UNITY_EDITOR
-        [BoxGroup]
-        [LabelText(GASTextDefine.CUE_ATTACH_TO_OWNER)]
-#endif
         /// <summary>
         /// 是否附加到目标对象
         /// </summary>
         public bool IsAttachToTarget = true;
 
-#if UNITY_EDITOR
-        [BoxGroup]
-        [LabelText(GASTextDefine.CUE_VFX_OFFSET)]
-#endif
         /// <summary>
-        /// VFX相对于目标的位置偏移
+        /// VFX相对于目标的位置偏移（.NET版本中作为占位符）
         /// </summary>
-        public Vector3 Offset;
+        public object Offset;
 
-#if UNITY_EDITOR
-        [BoxGroup]
-        [LabelText(GASTextDefine.CUE_VFX_ROTATION)]
-#endif
         /// <summary>
-        /// VFX的旋转角度
+        /// VFX的旋转角度（.NET版本中作为占位符）
         /// </summary>
-        public Vector3 Rotation;
+        public object Rotation;
 
-#if UNITY_EDITOR
-        [BoxGroup]
-        [LabelText(GASTextDefine.CUE_VFX_SCALE)]
-#endif
         /// <summary>
-        /// VFX的缩放大小
+        /// VFX的缩放大小（.NET版本中作为占位符）
         /// </summary>
-        public Vector3 Scale = Vector3.one;
+        public object Scale = null;
         
-#if UNITY_EDITOR
-        [BoxGroup]
-        [LabelText(GASTextDefine.CUE_VFX_ACTIVE_WHEN_ADDED)]
-#endif
         /// <summary>
         /// 是否在添加时就激活
         /// </summary>
@@ -65,106 +40,34 @@ namespace GAS.Runtime
             return new CueVFXSpec(this, parameters);
         }
 
-#if UNITY_EDITOR
-        /// <summary>
-        /// 预览效果实例
-        /// </summary>
-        private GameObject _effectPreviewInstance;
-        public override void OnEditorPreview(GameObject preview, int frameIndex, int startFrame, int endFrame)
-        {
-            if (VfxPrefab == null) return;
-            if (frameIndex >= startFrame && frameIndex <= endFrame)
-            {
-                if (_effectPreviewInstance != null && _effectPreviewInstance.name != VfxPrefab.name)
-                {
-                    DestroyImmediate(_effectPreviewInstance);
-                    _effectPreviewInstance = null;
-                }
-
-                if (_effectPreviewInstance == null)
-                {
-                    _effectPreviewInstance = Instantiate(VfxPrefab, preview.transform);
-                    _effectPreviewInstance.name = VfxPrefab.name;
-                    _effectPreviewInstance.transform.localPosition = Offset;
-                    _effectPreviewInstance.transform.localEulerAngles = Rotation;
-                    _effectPreviewInstance.transform.localScale = Scale;
-                }
-
-                // 模拟例子的播放
-                var particleSystems = _effectPreviewInstance.GetComponentsInChildren<ParticleSystem>();
-                foreach (var ps in particleSystems)
-                {
-                    var t = (frameIndex - startFrame) / GASTimer.FrameRate;
-                    ps.Simulate(t);
-                }
-            }
-            else
-            {
-                if (_effectPreviewInstance != null)
-                {
-                    DestroyImmediate(_effectPreviewInstance);
-                    _effectPreviewInstance = null;
-                }
-            }
-        }
-#endif
     }
 
     public class CueVFXSpec : GameplayCueDurationalSpec<CueVFX>
     {
-        /// <summary>
-        /// VFX实例对象
-        /// </summary>
-        private GameObject _vfxInstance;
-
-        public CueVFXSpec(CueVFX cue, GameplayCueParameters parameters) : base(cue,
-            parameters)
+        public CueVFXSpec(CueVFX cue, GameplayCueParameters parameters) : base(cue, parameters)
         {
+            // 在纯.NET环境中，Unity的VFX和GameObject不可用
+            // 这里提供占位符实现，实际使用时需要替换为.NET图形库
+            throw new NotSupportedException("Unity VFX系统在纯.NET环境中不可用。请使用第三方渲染库。");
         }
 
         public override void OnAdd()
         {
-            if (cue.VfxPrefab != null)
-            {
-                _vfxInstance = cue.IsAttachToTarget
-                    ? Object.Instantiate(cue.VfxPrefab, Owner.transform)
-                    : Object.Instantiate(cue.VfxPrefab, Owner.transform.position, Quaternion.identity);
-
-                _vfxInstance.transform.localPosition = cue.Offset;
-                _vfxInstance.transform.localEulerAngles = cue.Rotation;
-                _vfxInstance.transform.localScale = cue.Scale;
-                _vfxInstance.SetActive(cue.ActiveWhenAdded);
-            }
-            else
-            {
-#if UNITY_EDITOR
-                Debug.LogError("VFX prefab is null!");
-#endif
-            }
+            throw new NotSupportedException("Unity VFX系统在纯.NET环境中不可用。");
         }
 
         public override void OnRemove()
         {
-            if (_vfxInstance != null)
-            {
-                Object.Destroy(_vfxInstance);
-            }
         }
 
         public override void OnGameplayEffectActivate()
         {
-            if (_vfxInstance != null)
-            {
-                _vfxInstance.SetActive(true);
-            }
+            throw new NotSupportedException("Unity VFX系统在纯.NET环境中不可用。");
         }
 
         public override void OnGameplayEffectDeactivate()
         {
-            if (_vfxInstance != null)
-            {
-                _vfxInstance.SetActive(false);
-            }
+            throw new NotSupportedException("Unity VFX系统在纯.NET环境中不可用。");
         }
 
         public override void OnTick()
@@ -173,10 +76,7 @@ namespace GAS.Runtime
 
         public void SetVisible(bool visible)
         {
-            if (_vfxInstance != null)
-            {
-                _vfxInstance.SetActive(visible);
-            }
+            throw new NotSupportedException("Unity VFX系统在纯.NET环境中不可用。");
         }
     }
 }

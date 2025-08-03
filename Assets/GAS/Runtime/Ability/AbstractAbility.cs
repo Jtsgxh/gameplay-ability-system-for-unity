@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using GAS.Runtime;
 
@@ -67,8 +68,8 @@ namespace GAS.Runtime
                 DataReference.ActivationOwnedTags, DataReference.ActivationRequiredTags, DataReference.ActivationBlockedTags,
                 DataReference.SourceRequiredTags, DataReference.SourceBlockedTags,
                 DataReference.TargetRequiredTags, DataReference.TargetBlockedTags);
-            Cooldown = DataReference.Cooldown ? new GameplayEffect(DataReference.Cooldown) : default;
-            Cost = DataReference.Cost ? new GameplayEffect(DataReference.Cost) : default;
+            Cooldown = DataReference.Cooldown != null ? new GameplayEffect(DataReference.Cooldown) : default;
+            Cost = DataReference.Cost != null ? new GameplayEffect(DataReference.Cost) : default;
 
             CooldownTime = DataReference.CooldownTime;
         }
@@ -104,12 +105,10 @@ namespace GAS.Runtime
             {
                 Cooldown = coolDown;
             }
-#if UNITY_EDITOR
             else
             {
-                UnityEngine.Debug.LogError("[EX] Cooldown must be duration policy!");
+                Console.WriteLine("[EX] Cooldown must be duration policy!");
             }
-#endif
         }
 
         /// <summary>
@@ -132,12 +131,10 @@ namespace GAS.Runtime
             {
                 Cost = cost;
             }
-#if UNITY_EDITOR
             else
             {
-                UnityEngine.Debug.LogError("[EX] Cost must be instant policy!");
+                Console.WriteLine("[EX] Cost must be instant policy!");
             }
-#endif
         }
     }
 

@@ -1,14 +1,9 @@
 ﻿using System.Linq;
 using GAS.General;
-using Sirenix.OdinInspector;
-using UnityEngine;
 
 namespace GAS.Runtime
 {
-#if UNITY_EDITOR
-    [CreateAssetMenu(fileName = "GameplayEffect", menuName = "GAS/GameplayEffect")]
-#endif
-    public class GameplayEffectAsset : ScriptableObject, IGameplayEffectData
+    public class GameplayEffectAsset : IGameplayEffectData
     {
         private const string GRP_BASE = "Base";
         private const string GRP_BASE_H = "Base/H";
@@ -33,363 +28,176 @@ namespace GAS.Runtime
 
         #region Base Info
 
-#if UNITY_EDITOR
-        [TitleGroup(GRP_BASE)]
-        [HorizontalGroup(GRP_BASE_H, Width = 1 - 0.618f)]
-        [TabGroup(GRP_BASE_H_LEFT, "Summary", SdfIconType.InfoSquareFill, TextColor = "#0BFFC5")]
-        [HideLabel]
-        [MultiLineProperty(5)]
-#endif
-        public string Description;
+        /// <summary>
+        /// 效果描述
+        /// </summary>
+        public string Description { get; set; }
+
+        /// <summary>
+        /// 资产名称
+        /// </summary>
+        public string Name { get; set; }
 
         #endregion Base Info
 
         #region Policy
 
-#if UNITY_EDITOR
-        [HorizontalGroup(GRP_BASE_H)]
-        [TabGroup(GRP_BASE_H_RIGHT, "Policy", SdfIconType.AwardFill, TextColor = "#FF7F00")]
-        [LabelText(GASTextDefine.LABLE_GE_POLICY, SdfIconType.Diagram3Fill)]
-        [LabelWidth(WIDTH_LABEL)]
-        [EnumToggleButtons]
-        [PropertyOrder(1)]
-#endif
-        public EffectsDurationPolicy DurationPolicy = EffectsDurationPolicy.Instant;
+        /// <summary>
+        /// 效果持续策略
+        /// </summary>
+        public EffectsDurationPolicy DurationPolicy { get; set; } = EffectsDurationPolicy.Instant;
 
-#if UNITY_EDITOR
-        [TabGroup(GRP_BASE_H_RIGHT, "Policy")]
-        [LabelWidth(WIDTH_LABEL)]
-        [EnableIf("@DurationPolicy == EffectsDurationPolicy.Duration")]
-        [Unit(Units.Second)]
-        [ValidateInput("@DurationPolicy != EffectsDurationPolicy.Duration || Duration > 0", ERROR_DURATION)]
-        [LabelText(GASTextDefine.LABLE_GE_DURATION, SdfIconType.HourglassSplit)]
-        [PropertyOrder(2)]
-#endif
-        public float Duration;
+        /// <summary>
+        /// 效果持续时间（秒）
+        /// </summary>
+        public float Duration { get; set; }
 
-#if UNITY_EDITOR
-        [TabGroup(GRP_BASE_H_RIGHT, "Policy")]
-        [LabelText(GASTextDefine.LABLE_GE_INTERVAL, SdfIconType.AlarmFill)]
-        [LabelWidth(WIDTH_LABEL)]
-        [ShowIf("@DurationPolicy != EffectsDurationPolicy.Duration")]
-        [EnableIf("IsDurationalPolicy")]
-        [Unit(Units.Second)]
-        [PropertyOrder(3)]
-#endif
-        public float Period;
+        /// <summary>
+        /// 效果周期间隔（秒）
+        /// </summary>
+        public float Period { get; set; }
 
-#if UNITY_EDITOR
-        [TabGroup(GRP_BASE_H_RIGHT, "Policy")]
-        [LabelText(GASTextDefine.LABLE_GE_INTERVAL, SdfIconType.AlarmFill)]
-        [LabelWidth(WIDTH_LABEL)]
-        [ShowIf("@DurationPolicy == EffectsDurationPolicy.Duration")]
-        [InfoBox("Period < 0.01会出现误差", InfoMessageType.Warning,
-            VisibleIf =
-                "@DurationPolicy == EffectsDurationPolicy.Duration && PeriodForDurational > 0 && PeriodForDurational < 0.01f")]
-        [EnableIf("IsDurationalPolicy")]
-        [Unit(Units.Second)]
-        [PropertyOrder(3)]
-        [PropertyRange(0, "@Duration")]
-        [ShowInInspector]
-#endif
-        // 这个Property是为了给"限时型"效果绘制一个范围滑动条
-        public float PeriodForDurational
-        {
-            get => Period;
-            set => Period = value;
-        }
-
-#if UNITY_EDITOR
-        [TabGroup(GRP_BASE_H_RIGHT, "Policy")]
-        [LabelText(GASTextDefine.LABLE_GE_EXEC, SdfIconType.Magic)]
-        [LabelWidth(WIDTH_LABEL)]
-        [EnableIf("IsPeriodic")]
-        [AssetSelector]
-        [InfoBox(ERROR_PERIOD_GE_NONE, InfoMessageType.Error, VisibleIf = "IsPeriodGameplayEffectNone")]
-        [InfoBox("必须为Instant类型", InfoMessageType.Error,
-            VisibleIf =
-                "@IsPeriodic() && (PeriodExecution != null && PeriodExecution.DurationPolicy != EffectsDurationPolicy.Instant)")]
-        [PropertyOrder(4)]
-#endif
-        public GameplayEffectAsset PeriodExecution;
+        /// <summary>
+        /// 周期执行的游戏效果
+        /// </summary>
+        public GameplayEffectAsset PeriodExecution { get; set; }
 
         #endregion Policy
 
         #region Stack
 
-#if UNITY_EDITOR
-        [TitleGroup(GRP_DATA)]
-        [HorizontalGroup(GRP_DATA_H2, order: 2, Width = 1 - 0.618f)]
-        [TabGroup(GRP_DATA_STACK, "Stacking", SdfIconType.Stack, TextColor = "#9B4AE3", Order = 1)]
-        [HideLabel]
-        [EnableIf("IsDurationalPolicy")]
-        [InfoBox("瞬时效果无法叠加", InfoMessageType.None, VisibleIf = "@IsInstantPolicy()")]
-#endif
-        public GameplayEffectStackingConfig Stacking;
-
-#if UNITY_EDITOR
-        [TabGroup(GRP_DATA_STACK, "Stacking")]
-        [ShowIf("@IsDurationalPolicy() && Stacking.stackingType != StackingType.None")]
-        [Button("使用资产名称作为堆叠识别码", ButtonSizes.Medium, Icon = SdfIconType.Hammer)]
-        private void SetStackingCodeNameAsAssetName()
-        {
-            var stacking = Stacking;
-            stacking.stackingCodeName = name;
-            Stacking = stacking;
-        }
-#endif
+        /// <summary>
+        /// 效果堆叠配置
+        /// </summary>
+        public GameplayEffectStackingConfig Stacking { get; set; }
 
         #endregion Stack
 
         #region Granted Abilities
 
-#if UNITY_EDITOR
-        [TabGroup(GRP_DATA_GRANTED_ABILITIES, "Granted Abilities", SdfIconType.YinYang, TextColor = "#D6626E",
-            Order = 2)]
-        [EnableIf("IsDurationalPolicy")]
-        [InfoBox("瞬时效果无法赋予能力", InfoMessageType.None, VisibleIf = "@IsInstantPolicy()")]
-        [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
-        [InfoBox(ERROR_GRANTED_ABILITY_INVALID, InfoMessageType.Error, VisibleIf = "IsGrantedAbilitiesInvalid")]
-#endif
-        public GrantedAbilityConfig[] GrantedAbilities;
+        /// <summary>
+        /// 授予的技能配置
+        /// </summary>
+        public GrantedAbilityConfig[] GrantedAbilities { get; set; }
         
-#if UNITY_EDITOR
-        [Space]
-        [TabGroup(GRP_DATA_GRANTED_ABILITIES, "Granted Abilities")]
-        [EnableIf("IsDurationalPolicy")]
-        [InfoBox("瞬时效果没有过期时机", InfoMessageType.None, VisibleIf = "@IsInstantPolicy()")]
-        [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
-        [AssetSelector]
-        [LabelText("Premature Expiration Effects")]
-        [Tooltip("当此效果被提前移除时触发的游戏效果（比如被驱散、取消等）")]
-#endif
-        public GameplayEffectAsset[] PrematureExpirationEffects;
+        /// <summary>
+        /// 提前过期时触发的效果
+        /// </summary>
+        public GameplayEffectAsset[] PrematureExpirationEffects { get; set; }
         
-#if UNITY_EDITOR
-        [TabGroup(GRP_DATA_GRANTED_ABILITIES, "Granted Abilities")]
-        [EnableIf("IsDurationalPolicy")]
-        [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
-        [AssetSelector]
-        [LabelText("Routine Expiration Effects")]
-        [Tooltip("当此效果正常过期时触发的游戏效果（持续时间结束）")]
-#endif
-        public GameplayEffectAsset[] RoutineExpirationEffects;
+        /// <summary>
+        /// 正常过期时触发的效果
+        /// </summary>
+        public GameplayEffectAsset[] RoutineExpirationEffects { get; set; }
 
         #endregion Granted Abilities
 
         #region Modifiers
 
-#if UNITY_EDITOR
-        [HorizontalGroup(GRP_DATA_H, order: 1, Width = 0.618f * 0.618f)]
-        [TabGroup(GRP_DATA_MOD, "Modifiers", SdfIconType.CalculatorFill, TextColor = "#FFE60B", Order = 2)]
-        [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
-        [InfoBox("依次执行多个修改器, 请注意执行顺序", InfoMessageType.Info, VisibleIf = "@$value != null && $value.Length > 1")]
-        [InfoBox("瞬时效果不能修改非Stacking属性", InfoMessageType.Error, VisibleIf = "IsModifiersHasInvalid")]
-        [LabelText(@"@IsInstantPolicy() ? ""仅在成功应用时执行"":""每次激活时都会执行""")]
-#endif
-        public GameplayEffectModifier[] Modifiers;
-
-        bool IsModifiersHasInvalid()
-        {
-            if (IsInstantPolicy())
-            {
-                return Modifiers != null && Modifiers.Any(modifier =>
-                {
-                    var attributeBase = ReflectionHelper.GetAttribute(modifier.AttributeName);
-                    if (attributeBase != null)
-                    {
-                        return attributeBase.CalculateMode != CalculateMode.Stacking;
-                    }
-
-                    return false;
-                });
-            }
-
-            return false;
-        }
+        /// <summary>
+        /// 游戏效果修饰符数组
+        /// </summary>
+        public GameplayEffectModifier[] Modifiers { get; set; }
 
         #endregion Modifiers
 
         #region Tags
 
-#if UNITY_EDITOR
-        [HorizontalGroup(GRP_DATA_H, order: 1, Width = 1 - 0.618f)]
-        [TabGroup(GRP_DATA_TAG, "Tags", SdfIconType.TagsFill, TextColor = "#45B1FF", Order = 1)]
-        [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
-        [ValueDropdown("@ValueDropdownHelper.GameplayTagChoices", IsUniqueList = true, HideChildProperties = true)]
-        [LabelText(GASTextDefine.TITLE_GE_TAG_AssetTags)]
-        [Tooltip(GASTextDefine.TIP_GE_TAG_AssetTags)]
-        [ShowIf("IsDurationalPolicy")]
-#endif
-        public GameplayTag[] AssetTags;
+        /// <summary>
+        /// 资产标签
+        /// </summary>
+        public GameplayTag[] AssetTags { get; set; }
 
-#if UNITY_EDITOR
-        [Space()]
-        [TabGroup(GRP_DATA_TAG, "Tags")]
-        [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
-        [ValueDropdown("@ValueDropdownHelper.GameplayTagChoices", IsUniqueList = true, HideChildProperties = true)]
-        [LabelText(GASTextDefine.TITLE_GE_TAG_GrantedTags)]
-        [Tooltip(GASTextDefine.TIP_GE_TAG_GrantedTags)]
-        [ShowIf("IsDurationalPolicy")]
-#endif
-        public GameplayTag[] GrantedTags;
+        /// <summary>
+        /// 授予的标签
+        /// </summary>
+        public GameplayTag[] GrantedTags { get; set; }
 
-#if UNITY_EDITOR
-        [Space()]
-        [TabGroup(GRP_DATA_TAG, "Tags")]
-        [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
-        [ValueDropdown("@ValueDropdownHelper.GameplayTagChoices", IsUniqueList = true, HideChildProperties = true)]
-        [LabelText(GASTextDefine.TITLE_GE_TAG_ApplicationRequiredTags)]
-        [Tooltip(GASTextDefine.TIP_GE_TAG_ApplicationRequiredTags)]
-#endif
-        public GameplayTag[] ApplicationRequiredTags;
+        /// <summary>
+        /// 应用时需要的标签
+        /// </summary>
+        public GameplayTag[] ApplicationRequiredTags { get; set; }
 
-#if UNITY_EDITOR
-        [Space()]
-        [TabGroup(GRP_DATA_TAG, "Tags")]
-        [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
-        [ValueDropdown("@ValueDropdownHelper.GameplayTagChoices", IsUniqueList = true, HideChildProperties = true)]
-        [LabelText(GASTextDefine.TITLE_GE_TAG_OngoingRequiredTags)]
-        [Tooltip(GASTextDefine.TIP_GE_TAG_OngoingRequiredTags)]
-        [ShowIf("IsDurationalPolicy")]
-#endif
-        public GameplayTag[] OngoingRequiredTags;
+        /// <summary>
+        /// 持续期间需要的标签
+        /// </summary>
+        public GameplayTag[] OngoingRequiredTags { get; set; }
 
-#if UNITY_EDITOR
-        [Space()]
-        [TabGroup(GRP_DATA_TAG, "Tags")]
-        [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
-        [ValueDropdown("@ValueDropdownHelper.GameplayTagChoices", IsUniqueList = true, HideChildProperties = true)]
-        [LabelText(GASTextDefine.TITLE_GE_TAG_RemoveGameplayEffectsWithTags)]
-        [Tooltip(GASTextDefine.TIP_GE_TAG_RemoveGameplayEffectsWithTags)]
-#endif
-        public GameplayTag[] RemoveGameplayEffectsWithTags;
+        /// <summary>
+        /// 移除具有这些标签的游戏效果
+        /// </summary>
+        public GameplayTag[] RemoveGameplayEffectsWithTags { get; set; }
 
-#if UNITY_EDITOR
-        [Space()]
-        [TabGroup(GRP_DATA_TAG, "Tags")]
-        [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
-        [ValueDropdown("@ValueDropdownHelper.GameplayTagChoices", IsUniqueList = true, HideChildProperties = true)]
-        [LabelText(GASTextDefine.TITLE_GE_TAG_ApplicationImmunityTags)]
-        [Tooltip(GASTextDefine.TIP_GE_TAG_ApplicationImmunityTags)]
-#endif
-        public GameplayTag[] ApplicationImmunityTags;
+        /// <summary>
+        /// 应用免疫标签
+        /// </summary>
+        public GameplayTag[] ApplicationImmunityTags { get; set; }
 
         #endregion Tags
 
         #region Cues
 
-#if UNITY_EDITOR
-        [TabGroup(GRP_DATA_CUE, "Cues", SdfIconType.Stars, TextColor = "#00FFFF", Order = 3)]
-        [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
-        [ShowIf("IsInstantPolicy")]
-        [InfoBox(ERROR_NONE_CUE, InfoMessageType.Error, VisibleIf = "IsCueExecuteNone")]
-        [AssetSelector]
-        [LabelText(GASTextDefine.TITLE_GE_CUE_CueOnExecute)]
-#endif
-        public GameplayCueInstant[] CueOnExecute;
+        /// <summary>
+        /// 执行时触发的瞬时提示
+        /// </summary>
+        public GameplayCueInstant[] CueOnExecute { get; set; }
 
-#if UNITY_EDITOR
-        [Space()]
-        [TabGroup(GRP_DATA_CUE, "Cues")]
-        [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
-        [ShowIf("IsDurationalPolicy")]
-        [InfoBox(ERROR_NONE_CUE, InfoMessageType.Error, VisibleIf = "IsCueDurationalNone")]
-        [AssetSelector]
-        [LabelText(GASTextDefine.TITLE_GE_CUE_CueDurational)]
-        [Tooltip("生命周期完全和GameplayEffect同步")]
-#endif
-        public GameplayCueDurational[] CueDurational;
+        /// <summary>
+        /// 持续性提示
+        /// </summary>
+        public GameplayCueDurational[] CueDurational { get; set; }
 
-#if UNITY_EDITOR
-        [Space()]
-        [TabGroup(GRP_DATA_CUE, "Cues")]
-        [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
-        [ShowIf("IsDurationalPolicy")]
-        [AssetSelector]
-        [LabelText(GASTextDefine.TITLE_GE_CUE_CueOnAdd)]
-#endif
-        public GameplayCueInstant[] CueOnAdd;
+        /// <summary>
+        /// 添加时触发的提示
+        /// </summary>
+        public GameplayCueInstant[] CueOnAdd { get; set; }
 
-#if UNITY_EDITOR
-        [Space()]
-        [TabGroup(GRP_DATA_CUE, "Cues")]
-        [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
-        [ShowIf("IsDurationalPolicy")]
-        [AssetSelector]
-        [LabelText(GASTextDefine.TITLE_GE_CUE_CueOnRemove)]
-#endif
-        public GameplayCueInstant[] CueOnRemove;
+        /// <summary>
+        /// 移除时触发的提示
+        /// </summary>
+        public GameplayCueInstant[] CueOnRemove { get; set; }
 
-#if UNITY_EDITOR
-        [Space()]
-        [TabGroup(GRP_DATA_CUE, "Cues")]
-        [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
-        [ShowIf("IsDurationalPolicy")]
-        [AssetSelector]
-        [LabelText(GASTextDefine.TITLE_GE_CUE_CueOnActivate)]
-#endif
-        public GameplayCueInstant[] CueOnActivate;
+        /// <summary>
+        /// 激活时触发的提示
+        /// </summary>
+        public GameplayCueInstant[] CueOnActivate { get; set; }
 
-#if UNITY_EDITOR
-        [Space()]
-        [TabGroup(GRP_DATA_CUE, "Cues")]
-        [ListDrawerSettings(ShowFoldout = true, ShowItemCount = false)]
-        [ShowIf("IsDurationalPolicy")]
-        [AssetSelector]
-        [LabelText(GASTextDefine.TITLE_GE_CUE_CueOnDeactivate)]
-#endif
-        public GameplayCueInstant[] CueOnDeactivate;
+        /// <summary>
+        /// 停用时触发的提示
+        /// </summary>
+        public GameplayCueInstant[] CueOnDeactivate { get; set; }
 
         #endregion Cues
 
-        // TODO
-#if UNITY_EDITOR
-        [HideInInspector]
-#endif
-        public GameplayEffectExecutionCalculation[] Executions;
+        /// <summary>
+        /// 执行计算器数组
+        /// </summary>
+        public GameplayEffectExecutionCalculation[] Executions { get; set; }
 
-        bool IsPeriodic()
+        /// <summary>
+        /// 检查是否为周期性效果
+        /// </summary>
+        public bool IsPeriodic()
         {
             return IsDurationalPolicy() && Period > 0;
         }
 
-        bool IsDurationalPolicy()
+        /// <summary>
+        /// 检查是否为持续性效果
+        /// </summary>
+        public bool IsDurationalPolicy()
         {
             return DurationPolicy == EffectsDurationPolicy.Duration || DurationPolicy == EffectsDurationPolicy.Infinite;
         }
 
-        bool IsInstantPolicy() => DurationPolicy == EffectsDurationPolicy.Instant;
-
-        bool IsCueExecuteNone() => CueOnExecute != null && CueOnExecute.Any(cue => cue == null);
-
-        bool IsCueDurationalNone()
-        {
-            return (CueDurational != null && CueDurational.Any(cue => cue == null)) ||
-                   (CueOnAdd != null && CueOnAdd.Any(cue => cue == null)) ||
-                   (CueOnRemove != null && CueOnRemove.Any(cue => cue == null)) ||
-                   (CueOnActivate != null && CueOnActivate.Any(cue => cue == null)) ||
-                   (CueOnDeactivate != null && CueOnDeactivate.Any(cue => cue == null));
-        }
-
-        bool IsPeriodGameplayEffectNone()
-        {
-            return IsPeriodic() && PeriodExecution == null;
-        }
-
-        bool IsDurationInvalid() => DurationPolicy == EffectsDurationPolicy.Duration && Duration <= 0;
-        bool IsPeriodInvalid() => IsDurationalPolicy() && Period < 0;
-
-        bool IsGrantedAbilitiesInvalid()
-        {
-            return IsDurationalPolicy() &&
-                   GrantedAbilities != null &&
-                   GrantedAbilities.Any(abilityConfig => abilityConfig.AbilityAsset == null);
-        }
+        /// <summary>
+        /// 检查是否为瞬时效果
+        /// </summary>
+        public bool IsInstantPolicy() => DurationPolicy == EffectsDurationPolicy.Instant;
 
         #region IGameplayEffectData
 
-        public string GetDisplayName() => name;
+        public string GetDisplayName() => Name;
 
         public EffectsDurationPolicy GetDurationPolicy() => DurationPolicy;
 

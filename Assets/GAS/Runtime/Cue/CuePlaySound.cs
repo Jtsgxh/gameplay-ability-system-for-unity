@@ -42,20 +42,9 @@ namespace GAS.Runtime
         public CuePlaySoundSpec(CuePlaySound cue, GameplayCueParameters parameters) : base(cue,
             parameters)
         {
-            if (cue.isAttachToOwner)
-            {
-                _audioSource = Owner.gameObject.GetComponent<AudioSource>();
-                if (_audioSource == null)
-                {
-                    _audioSource = Owner.gameObject.AddComponent<AudioSource>();
-                }
-            }
-            else
-            {
-                var soundRoot = new GameObject("SoundRoot");
-                soundRoot.transform.position = Owner.transform.position;
-                _audioSource = soundRoot.AddComponent<AudioSource>();
-            }
+            // 在纯.NET环境中，Unity的AudioSource和GameObject不可用
+            // 这里提供占位符实现，实际使用时需要替换为.NET音频库
+            throw new NotSupportedException("Unity音频系统在纯.NET环境中不可用。请使用第三方音频库如NAudio等。");
         }
 
         public override void OnAdd()

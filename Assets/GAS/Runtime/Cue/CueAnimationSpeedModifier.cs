@@ -1,6 +1,5 @@
-﻿using GAS.General;
-using Sirenix.OdinInspector;
-using UnityEngine;
+﻿using System;
+using GAS.General;
 
 namespace GAS.Runtime
 {
@@ -8,33 +7,12 @@ namespace GAS.Runtime
     {
         const int LabelWidth = 120;
 
-#if UNITY_EDITOR
-        [TabGroup("Data", "Data", SdfIconType.Gear, TextColor = "#FF7F00")]
-        [InfoBox(GASTextDefine.CUE_ANIMATION_PATH_TIP, InfoMessageType.None)]
-        [LabelText(GASTextDefine.CUE_ANIMATION_PATH), LabelWidth(LabelWidth)]
-#endif
         public string animatorRelativePath;
 
-#if UNITY_EDITOR
-        [TabGroup("Data", "Data")]
-        [InfoBox(GASTextDefine.CUE_ANIMATION_INCLUDE_CHILDREN_ANIMATOR_TIP, InfoMessageType.None)]
-        [LabelText(GASTextDefine.CUE_ANIMATION_INCLUDE_CHILDREN), LabelWidth(LabelWidth)]
-#endif
         public bool includeChildrenAnimator;
 
-#if UNITY_EDITOR
-        [TabGroup("Data", "Data")]
-        [LabelText("播放速度"), LabelWidth(LabelWidth)]
-        [Range(0, 5f)]
-#endif
         public float speed = 1f;
 
-#if UNITY_EDITOR
-        [TabGroup("Data", "Data")]
-        [InfoBox("结束时会设置的值, 如果有其它需求, 需要另外实现. ^_^", InfoMessageType.None)]
-        [LabelText("默认播放速度"), LabelWidth(LabelWidth)]
-        [Range(0, 5f)]
-#endif
         public float defaultSpeed = 1f;
 
         public override GameplayCueDurationalSpec CreateSpec(GameplayCueParameters parameters)
@@ -46,24 +24,12 @@ namespace GAS.Runtime
 
     public sealed class GCS_ChangeAnimationSpeed : GameplayCueDurationalSpec<CueAnimationSpeedModifier>
     {
-        private readonly Animator _animator;
-
         public GCS_ChangeAnimationSpeed(CueAnimationSpeedModifier cue, GameplayCueParameters parameters)
             : base(cue, parameters)
         {
-            var transform = Owner.transform.Find(cue.animatorRelativePath);
-            if (transform != null)
-            {
-                _animator = cue.includeChildrenAnimator
-                    ? transform.GetComponentInChildren<Animator>()
-                    : transform.GetComponent<Animator>();
-            }
-
-            if (_animator == null)
-            {
-                Debug.LogError(
-                    $"Animator is null. Please check the cue asset: {cue.name}, AnimatorRelativePath: {cue.animatorRelativePath}, IncludeChildrenAnimator: {cue.includeChildrenAnimator}");
-            }
+            // 在纯.NET环境中，Unity的Animator和Transform不可用
+            // 这里提供占位符实现，实际使用时需要替换为.NET动画库
+            throw new NotSupportedException("Unity动画系统在纯.NET环境中不可用。请使用第三方动画库。");
         }
 
         public override void OnAdd()
@@ -76,18 +42,12 @@ namespace GAS.Runtime
 
         public override void OnGameplayEffectActivate()
         {
-            if (_animator != null)
-            {
-                _animator.speed = cue.speed;
-            }
+            throw new NotSupportedException("Unity动画系统在纯.NET环境中不可用。");
         }
 
         public override void OnGameplayEffectDeactivate()
         {
-            if (_animator != null)
-            {
-                _animator.speed = cue.defaultSpeed;
-            }
+            throw new NotSupportedException("Unity动画系统在纯.NET环境中不可用。");
         }
 
         public override void OnTick()

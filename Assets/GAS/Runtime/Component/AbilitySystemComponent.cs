@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace GAS.Runtime
 {
-    public class AbilitySystemComponent : MonoBehaviour, IAbilitySystemComponent
+    public class AbilitySystemComponent : IAbilitySystemComponent, IDisposable
     {
-        [SerializeField]
         private AbilitySystemComponentPreset preset;
 
         public AbilitySystemComponentPreset Preset => preset;
@@ -30,6 +28,48 @@ namespace GAS.Runtime
         /// 标记组件是否已经准备完毕
         /// </summary>
         private bool _ready;
+
+        /// <summary>
+        /// 标记组件是否已释放
+        /// </summary>
+        private bool _disposed;
+
+        /// <summary>
+        /// 组件名称
+        /// </summary>
+        public string Name { get; set; } = "AbilitySystemComponent";
+
+        /// <summary>
+        /// 实例ID（.NET版本的替代方案）
+        /// </summary>
+        public int InstanceID { get; private set; }
+
+        /// <summary>
+        /// 游戏对象引用（.NET版本中作为占位符）
+        /// </summary>
+        public object gameObject { get; set; }
+
+        /// <summary>
+        /// 静态计数器用于生成唯一的实例ID
+        /// </summary>
+        private static int _nextInstanceID = 1;
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        public AbilitySystemComponent()
+        {
+            InstanceID = _nextInstanceID++;
+        }
+
+        /// <summary>
+        /// 获取实例ID（Unity兼容性方法）
+        /// </summary>
+        /// <returns>实例ID</returns>
+        public int GetInstanceID()
+        {
+            return InstanceID;
+        }
 
         private void Prepare()
         {
@@ -70,12 +110,10 @@ namespace GAS.Runtime
             GameplayTagAggregator?.OnDisable();
         }
 
-        private void Awake()
-        {
-            Prepare();
-        }
-
-        private void OnEnable()
+        /// <summary>
+        /// 初始化组件
+        /// </summary>
+        public void Initialize()
         {
             Prepare();
             GameplayAbilitySystem.GAS.Register(this);
@@ -83,10 +121,16 @@ namespace GAS.Runtime
             Enable();
         }
 
-        private void OnDisable()
+        /// <summary>
+        /// 释放组件资源
+        /// </summary>
+        public void Dispose()
         {
+            if (_disposed) return;
+            
             Disable();
             GameplayAbilitySystem.GAS.Unregister(this);
+            _disposed = true;
         }
 
         public void SetPreset(AbilitySystemComponentPreset ascPreset)
@@ -136,7 +180,7 @@ namespace GAS.Runtime
         {
             if (info == null)
             {
-                Debug.LogWarning($"[EX] Try To Grant a NULL Ability!");
+                Console.WriteLine($"[EX] Try To Grant a NULL Ability!");
                 return;
             }
 
@@ -152,7 +196,7 @@ namespace GAS.Runtime
                 // 踩坑日志:
                 //   复制了某个AbilityAsset实现类的代码，但忘记更新AbilityType()方法的返回值。
                 //   一般来说AbilityAsset和Ability应该是配套的, 比如在"GAA_xxx"中返回"GA_xxx"的类型.
-                Debug.LogError($"[EX] 创建能力失败: " +
+                Console.WriteLine($"[EX] 创建能力失败: " +
                                $"请检查AbilityAsset实现类'{info.GetType().FullName}'中的AbilityType()方法" +
                                $"是否正确返回了能力类型(当前为'{info.AbilityType()?.FullName ?? "null"}')。");
                 throw;
@@ -239,9 +283,7 @@ namespace GAS.Runtime
         {
             if (gameplayEffect == null)
             {
-#if UNITY_EDITOR
-                Debug.LogError($"[EX] Try To Apply a NULL GameplayEffect From {name} To {target.name}!");
-#endif
+                Console.WriteLine($"[EX] Try To Apply a NULL GameplayEffect From {Name} To {target.Name}!");
                 return null;
             }
 
@@ -254,9 +296,7 @@ namespace GAS.Runtime
         {
             if (gameplayEffect == null)
             {
-#if UNITY_EDITOR
-                Debug.LogError($"[EX] Try To Apply a NULL GameplayEffect From {name} To {target.name}!");
-#endif
+                Console.WriteLine($"[EX] Try To Apply a NULL GameplayEffect From {Name} To {target.Name}!");
                 return null;
             }
 
@@ -609,7 +649,7 @@ namespace GAS.Runtime
         {
             if (string.IsNullOrEmpty(eventName))
             {
-                Debug.LogWarning("Cannot publish event with null or empty name");
+                Console.WriteLine("Cannot publish event with null or empty name");
                 return;
             }
             

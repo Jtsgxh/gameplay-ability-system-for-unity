@@ -36,7 +36,7 @@ namespace GAS.Editor
             string info = "";
             foreach (var clip in _track.BuffTrackDataForSave.clipEvents)
             {
-                var clipName = clip.gameplayEffect != null ? clip.gameplayEffect.name : "NULL";
+                var clipName = clip.gameplayEffect != null ? clip.gameplayEffect.Name : "NULL";
                 info += $"[{clipName}]  Run(f):{clip.startFrame} -> {clip.EndFrame} \n";
             }
             TrackInfo = $"<b>{info}</b>";

@@ -47,6 +47,11 @@ namespace GAS.Runtime
         private readonly AbilitySystemComponent _owner;
         
         /// <summary>
+        /// 容器是否已启用
+        /// </summary>
+        private bool _enabled = false;
+        
+        /// <summary>
         /// 属性集集合，以属性集类型名称为键
         /// </summary>
         private readonly Dictionary<string, AttributeSet> _attributeSets = new Dictionary<string, AttributeSet>();
@@ -166,8 +171,11 @@ namespace GAS.Runtime
                 if (attributeBase != null && !_attributeAggregators.ContainsKey(attributeBase))
                 {
                     var attrAggt = new AttributeAggregator(attributeBase, _owner);
-                    if (_owner.enabled) 
+                    // 只有当容器已启用时，才启用新的属性聚合器
+                    if (_enabled)
+                    {
                         attrAggt.OnEnable();
+                    }
                     _attributeAggregators.Add(attributeBase, attrAggt);
                 }
             }
@@ -430,6 +438,9 @@ namespace GAS.Runtime
         /// </remarks>
         public void OnDisable()
         {
+            if (!_enabled) return;
+            
+            _enabled = false;
             foreach (var aggregator in _attributeAggregators)
                 aggregator.Value.OnDisable();
         }
@@ -448,6 +459,9 @@ namespace GAS.Runtime
         /// </remarks>
         public void OnEnable()
         {
+            if (_enabled) return;
+            
+            _enabled = true;
             foreach (var aggregator in _attributeAggregators)
                 aggregator.Value.OnEnable();
         }

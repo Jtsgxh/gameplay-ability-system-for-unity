@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine;
 
 namespace GAS.General
 {
@@ -22,7 +21,7 @@ namespace GAS.General
         public static int CurrentFrameCount => _currentFrameCount; 
         public static void UpdateCurrentFrameCount()
         {
-            _currentFrameCount = Mathf.FloorToInt((Timestamp() - _startTimestamp) / 1000f * FrameRate);
+            _currentFrameCount = (int)Math.Floor((Timestamp() - _startTimestamp) / 1000f * FrameRate);
         }
 
         /// <summary>

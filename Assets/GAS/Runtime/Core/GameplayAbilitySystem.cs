@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using GAS.General;
 using GAS.Runtime;
-using UnityEngine;
-using UnityEngine.Profiling;
+using System.Diagnostics;
 
 namespace GAS
 {
@@ -70,13 +69,13 @@ namespace GAS
         /// 构造过程包括：
         /// 1. 初始化组件列表（预分配1024容量）
         /// 2. 初始化GAS计时器系统
-        /// 3. 创建不可销毁的GAS宿主GameObject
+        /// 3. 创建GAS宿主实例
         /// 4. 配置宿主对象的生命周期管理
         /// 
         /// 宿主对象特性：
-        /// - 隐藏在Hierarchy中
-        /// - 场景切换时不会被销毁
-        /// - 承载GAS系统的MonoBehaviour组件
+        /// - 使用.NET Timer提供更新循环
+        /// - 自动管理资源生命周期
+        /// - 承载GAS系统的更新逻辑
         /// </remarks>
         private GameplayAbilitySystem()
         {
@@ -85,10 +84,7 @@ namespace GAS
             _cachedAbilitySystemComponents = new List<AbilitySystemComponent>(capacity);
             GASTimer.InitStartTimestamp();
 
-            GasHost = new GameObject("GAS Host").AddComponent<GasHost>();
-            GasHost.hideFlags = HideFlags.HideAndDontSave;
-            Object.DontDestroyOnLoad(GasHost.gameObject);
-            GasHost.gameObject.SetActive(true);
+            GasHost = new GasHost();
         }
 
         /// <summary>
@@ -114,11 +110,11 @@ namespace GAS
         private readonly List<AbilitySystemComponent> _cachedAbilitySystemComponents;
 
         /// <summary>
-        /// GAS系统的宿主MonoBehaviour组件
+        /// GAS系统的宿主组件
         /// </summary>
         /// <remarks>
-        /// 提供Unity生命周期支持，包括Update循环和组件管理。
-        /// 此组件承载在一个不可销毁的GameObject上。
+        /// 提供生命周期支持，包括更新循环和组件管理。
+        /// 使用.NET Timer实现定时更新机制。
         /// </remarks>
         private GasHost GasHost { get; }
 
@@ -168,10 +164,10 @@ namespace GAS
         /// // 检查系统状态
         /// if (GameplayAbilitySystem.GAS.IsPaused)
         /// {
-        ///     Debug.Log("GAS系统已暂停，技能和效果不会更新");
+        ///     Console.WriteLine("GAS系统已暂停，技能和效果不会更新");
         /// }
         /// </example>
-        public bool IsPaused => !GasHost.enabled;
+        public bool IsPaused => !GasHost.Enabled;
 
         /// <summary>
         /// 注册AbilitySystemComponent到GAS系统
@@ -270,7 +266,7 @@ namespace GAS
         /// </example>
         public void Pause()
         {
-            GasHost.enabled = false;
+            GasHost.Enabled = false;
         }
 
         /// <summary>
@@ -294,7 +290,7 @@ namespace GAS
         /// </example>
         public void Unpause()
         {
-            GasHost.enabled = true;
+            GasHost.Enabled = true;
         }
 
         /// <summary>
@@ -331,7 +327,7 @@ namespace GAS
         public void ClearComponents()
         {
             foreach (var t in AbilitySystemComponents)
-                t.Disable();
+                t.Dispose();
 
             AbilitySystemComponents.Clear();
         }
@@ -359,7 +355,7 @@ namespace GAS
         /// - 采用缓存列表避免并发修改问题
         /// - 支持大量ASC的高效更新
         /// 
-        /// 此方法通常由GasHost的MonoBehaviour自动调用，不需要手动调用。
+        /// 此方法通常由GasHost的Timer自动调用，不需要手动调用。
         /// </remarks>
         /// <example>
         /// // 通常不需要手动调用，但可以用于调试
@@ -373,7 +369,8 @@ namespace GAS
         /// </example>
         public void Tick()
         {
-            Profiler.BeginSample($"{nameof(GameplayAbilitySystem)}::Tick()");
+            // 使用.NET Stopwatch进行性能监控（可选）
+            var stopwatch = Stopwatch.StartNew();
 
             _cachedAbilitySystemComponents.Clear();
             _cachedAbilitySystemComponents.AddRange(AbilitySystemComponents);
@@ -385,7 +382,9 @@ namespace GAS
 
             _cachedAbilitySystemComponents.Clear();
 
-            Profiler.EndSample();
+            stopwatch.Stop();
+            // 如果需要性能调试，可以输出时间
+            // Console.WriteLine($"GAS Tick took: {stopwatch.ElapsedMilliseconds}ms");
         }
     }
 }

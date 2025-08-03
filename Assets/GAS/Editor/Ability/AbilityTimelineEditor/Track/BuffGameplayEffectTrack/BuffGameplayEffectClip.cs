@@ -35,8 +35,8 @@ namespace GAS.Editor
         {
             base.RefreshShow(newFrameUnitWidth);
             // clip 文本
-            ItemLabel.text = BuffGameplayEffectClipData.gameplayEffect
-                ? BuffGameplayEffectClipData.gameplayEffect.name
+            ItemLabel.text = BuffGameplayEffectClipData.gameplayEffect != null
+                ? BuffGameplayEffectClipData.gameplayEffect.Name
                 : "【NULL】";
 
             // 刷新面板显示

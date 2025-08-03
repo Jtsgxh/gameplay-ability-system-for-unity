@@ -1,7 +1,5 @@
 using System;
 using GAS.General;
-using Sirenix.OdinInspector;
-using UnityEngine;
 
 namespace GAS.Runtime
 {
@@ -13,19 +11,16 @@ namespace GAS.Runtime
         /// <summary>
         /// 不激活, 等待用户调用ASC激活
         /// </summary>
-        [LabelText("None - 不激活, 等待用户调用ASC激活", SdfIconType.Joystick)]
         None,
 
         /// <summary>
         /// 能力添加时激活（GE添加时激活）
         /// </summary>
-        [LabelText("WhenAdded - 能力添加时激活（GE添加时激活）", SdfIconType.LightningChargeFill)]
         WhenAdded,
 
         /// <summary>
         /// 同步GE激活时激活
         /// </summary>
-        [LabelText("SyncWithEffect - 同步GE激活时激活", SdfIconType.Robot)]
         SyncWithEffect,
     }
 
@@ -37,13 +32,11 @@ namespace GAS.Runtime
         /// <summary>
         /// 无相关取消激活逻辑, 需要用户调用ASC取消激活
         /// </summary>
-        [LabelText("None - 无相关取消激活逻辑, 需要用户调用ASC取消激活", SdfIconType.Joystick)]
         None,
 
         /// <summary>
         /// 同步GE，GE失活时取消激活
         /// </summary>
-        [LabelText("SyncWithEffect - 同步GE，GE失活时取消激活", SdfIconType.Robot)]
         SyncWithEffect,
     }
 
@@ -55,31 +48,26 @@ namespace GAS.Runtime
         /// <summary>
         /// 不移除
         /// </summary>
-        [LabelText("None - 不移除", SdfIconType.Joystick)]
         None,
 
         /// <summary>
         /// 同步GE，GE移除时移除
         /// </summary>
-        [LabelText("SyncWithEffect - 同步GE，GE移除时移除", SdfIconType.Robot)]
         SyncWithEffect,
 
         /// <summary>
         /// 能力结束时自己移除
         /// </summary>
-        [LabelText("WhenEnd - 能力结束时自己移除", SdfIconType.LightningChargeFill)]
         WhenEnd,
 
         /// <summary>
         /// 能力取消时自己移除
         /// </summary>
-        [LabelText("WhenCancel - 能力取消时自己移除", SdfIconType.LightningChargeFill)]
         WhenCancel,
 
         /// <summary>
         /// 能力结束或取消时自己移除
         /// </summary>
-        [LabelText("WhenCancelOrEnd - 能力结束或取消时自己移除", SdfIconType.LightningChargeFill)]
         WhenCancelOrEnd,
     }
 
@@ -98,43 +86,29 @@ namespace GAS.Runtime
         /// <summary>
         /// 要授予的技能资产
         /// </summary>
-        [LabelWidth(LABEL_WIDTH)]
-        [LabelText(GASTextDefine.LABEL_GRANT_ABILITY)]
-        [AssetSelector]
         public AbilityAsset AbilityAsset;
 
         /// <summary>
         /// 授予技能的等级
         /// </summary>
-        [LabelWidth(LABEL_WIDTH)]
-        [LabelText(GASTextDefine.LABEL_GRANT_ABILITY_LEVEL)]
         public int AbilityLevel;
 
         /// <summary>
         /// 技能激活策略
         /// 定义技能何时被激活
         /// </summary>
-        [LabelWidth(LABEL_WIDTH)]
-        [LabelText(GASTextDefine.LABEL_GRANT_ABILITY_ACTIVATION_POLICY)]
-        [Tooltip(GASTextDefine.TIP_GRANT_ABILITY_ACTIVATION_POLICY)]
         public GrantedAbilityActivationPolicy ActivationPolicy;
 
         /// <summary>
         /// 技能失活策略
         /// 定义技能何时被失活
         /// </summary>
-        [LabelWidth(LABEL_WIDTH)]
-        [LabelText(GASTextDefine.LABEL_GRANT_ABILITY_DEACTIVATION_POLICY)]
-        [Tooltip(GASTextDefine.TIP_GRANT_ABILITY_DEACTIVATION_POLICY)]
         public GrantedAbilityDeactivationPolicy DeactivationPolicy;
 
         /// <summary>
         /// 技能移除策略
         /// 定义技能何时被移除
         /// </summary>
-        [LabelWidth(LABEL_WIDTH)]
-        [LabelText(GASTextDefine.LABEL_GRANT_ABILITY_REMOVE_POLICY)]
-        [Tooltip(GASTextDefine.TIP_GRANT_ABILITY_REMOVE_POLICY)]
         public GrantedAbilityRemovePolicy RemovePolicy;
     }
 
@@ -268,7 +242,7 @@ namespace GAS.Runtime
             Owner = SourceEffectSpec.Owner;
             if (Owner.AbilityContainer.HasAbility(AbilityName))
             {
-                Debug.LogError($"GrantedAbilitySpecFromEffect: {Owner.name} already has ability {AbilityName}");
+                Console.WriteLine($"GrantedAbilitySpecFromEffect: {Owner.Name} already has ability {AbilityName}");
             }
 
             Owner.GrantAbility(GrantedAbility.Ability);

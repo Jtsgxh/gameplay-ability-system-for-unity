@@ -1,35 +1,14 @@
+using System;
 using GAS.General;
-using Sirenix.OdinInspector;
-using UnityEngine;
 
 namespace GAS.Runtime
 {
-#if UNITY_EDITOR
-    [CreateAssetMenu(fileName = "CuePlayAnimation", menuName = "GAS/Cue/CuePlayAnimation")]
-#endif
     public class CueAnimationOneShot : GameplayCueInstant
     {
-#if UNITY_EDITOR
-        [BoxGroup]
-        [InfoBox(GASTextDefine.CUE_ANIMATION_PATH_TIP)]
-        [LabelText(GASTextDefine.CUE_ANIMATION_PATH)]
-#endif
-        [SerializeField]
         private string _animatorRelativePath;
 
-#if UNITY_EDITOR
-        [BoxGroup]
-        [InfoBox(GASTextDefine.CUE_ANIMATION_INCLUDE_CHILDREN_ANIMATOR_TIP)]
-        [LabelText(GASTextDefine.CUE_ANIMATION_INCLUDE_CHILDREN)]
-#endif
-        [SerializeField]
         private bool _includeChildrenAnimator;
 
-#if UNITY_EDITOR
-        [BoxGroup]
-        [LabelText(GASTextDefine.CUE_ANIMATION_STATE)]
-#endif
-        [SerializeField]
         private string _stateName;
 
         public string AnimatorRelativePath => _animatorRelativePath;
@@ -42,78 +21,21 @@ namespace GAS.Runtime
             return new CueAnimationOneShotSpec(this, parameters);
         }
 
-#if UNITY_EDITOR
-        public override void OnEditorPreview(GameObject previewObject, int frame, int startFrame)
-        {
-            if (startFrame <= frame)
-            {
-                var transform = previewObject.transform.Find(AnimatorRelativePath);
-                Animator animator = null;
-                if (transform != null)
-                {
-                    animator = IncludeChildrenAnimator
-                        ? transform.GetComponentInChildren<Animator>()
-                        : transform.GetComponent<Animator>();
-                }
-
-                if (animator == null)
-                {
-                    Debug.LogError(
-                        $"Animator is null. Please check the cue asset: {name}, AnimatorRelativePath: {AnimatorRelativePath}, IncludeChildrenAnimator: {IncludeChildrenAnimator}");
-                    return;
-                }
-
-                var stateMap = animator.GetAllAnimationState();
-                if (stateMap.TryGetValue(StateName, out var clip))
-                {
-                    if (clip != null)
-                    {
-                        float clipFrameCount = (int)(clip.frameRate * clip.length);
-                        if (frame <= clipFrameCount + startFrame)
-                        {
-                            var progress = (frame - startFrame) / clipFrameCount;
-                            if (progress > 1 && clip.isLooping) progress -= (int)progress;
-                            clip.SampleAnimation(animator.gameObject, progress * clip.length);
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"Clip is null. Please check the cue asset: {name}, StateName: {StateName}");
-                    }
-                }
-            }
-        }
-#endif
     }
 
     public class CueAnimationOneShotSpec : GameplayCueInstantSpec<CueAnimationOneShot>
     {
-        private readonly Animator _animator;
-
         public CueAnimationOneShotSpec(CueAnimationOneShot cue, GameplayCueParameters parameters)
             : base(cue, parameters)
         {
-            var transform = Owner.transform.Find(cue.AnimatorRelativePath);
-            if (transform != null)
-            {
-                _animator = cue.IncludeChildrenAnimator
-                    ? transform.GetComponentInChildren<Animator>()
-                    : transform.GetComponent<Animator>();
-            }
-
-            if (_animator == null)
-            {
-                Debug.LogError(
-                    $"Animator is null. Please check the cue asset: {cue.name}, AnimatorRelativePath: {cue.AnimatorRelativePath}, IncludeChildrenAnimator: {cue.IncludeChildrenAnimator}");
-            }
+            // 在纯.NET环境中，Unity的Animator和Transform不可用
+            // 这里提供占位符实现，实际使用时需要替换为.NET动画库
+            throw new NotSupportedException("Unity动画系统在纯.NET环境中不可用。请使用第三方动画库。");
         }
 
         public override void Trigger()
         {
-            if (_animator != null)
-            {
-                _animator.Play(cue.StateName);
-            }
+            throw new NotSupportedException("Unity动画系统在纯.NET环境中不可用。");
         }
     }
 }

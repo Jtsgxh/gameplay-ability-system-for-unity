@@ -39,7 +39,7 @@ namespace GAS.Editor
                 info += $"Trigger(f):{mark.startFrame} \n";
                 foreach (var ge in mark.gameplayEffectAssets)
                 {
-                    var geName = ge != null ? ge.name : "NULL";
+                    var geName = ge != null ? ge.Name : "NULL";
                     info += $"    |-> {geName}\n";
                 }
 

@@ -195,7 +195,7 @@ namespace GAS.Editor
             }
 
             IID = _selected.GetInstanceID();
-            instance = _selected.gameObject;
+            instance = _selected.gameObject as GameObject;
             Level = _selected.Level;
 
             RefreshAbilityInfo();
