@@ -36,11 +36,7 @@ namespace GAS.Runtime
             _owner = owner;
         }
 
-        /// <summary>
-        /// 容器状态变化事件
-        /// 当容器中的效果发生变化时触发
-        /// </summary>
-        private event Action OnGameplayEffectContainerIsDirty;
+        // 容器状态变化事件已改为通过EventBus发布
 
         /// <summary>
         /// 获取当前容器中的所有游戏效果列表
@@ -78,15 +74,7 @@ namespace GAS.Runtime
             _cachedGameplayEffectSpecs.Clear();
         }
 
-        public void RegisterOnGameplayEffectContainerIsDirty(Action action)
-        {
-            OnGameplayEffectContainerIsDirty += action;
-        }
-
-        public void UnregisterOnGameplayEffectContainerIsDirty(Action action)
-        {
-            OnGameplayEffectContainerIsDirty -= action;
-        }
+        // 委托注册/取消注册方法已移除，请使用EventBus订阅相应事件
 
         /// <summary>
         /// 移除包含指定标签的所有游戏效果
@@ -200,6 +188,12 @@ namespace GAS.Runtime
             spec.TriggerOnRemove();
             _gameplayEffectSpecs.Remove(spec);
             
+            // 通过EventBus发布游戏效果移除事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.PublishGameplayEffectEvent(spec, GameplayEvents.OnGameplayEffectRemoved);
+            }
+            
             // Trigger expiration effects based on removal type
             GameplayEffect[] expirationEffects = isPrematureRemoval 
                 ? spec.GameplayEffect.PrematureExpirationEffects 
@@ -218,7 +212,11 @@ namespace GAS.Runtime
                 }
             }
 
-            OnGameplayEffectContainerIsDirty?.Invoke();
+            // 通过EventBus发布容器状态变化事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.EventBus.Publish(GameplayEvents.OnGameplayEffectContainerChanged, _owner, null, null, null);
+            }
         }
 
         public void RefreshGameplayEffectState()
@@ -238,7 +236,11 @@ namespace GAS.Runtime
                 }
             }
 
-            OnGameplayEffectContainerIsDirty?.Invoke();
+            // 通过EventBus发布容器状态变化事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.EventBus.Publish(GameplayEvents.OnGameplayEffectContainerChanged, _owner, null, null, null);
+            }
         }
 
         public CooldownTimer CheckCooldownFromTags(GameplayTagSet tags)
@@ -284,7 +286,11 @@ namespace GAS.Runtime
 
             _gameplayEffectSpecs.Clear();
 
-            OnGameplayEffectContainerIsDirty?.Invoke();
+            // 通过EventBus发布容器状态变化事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.EventBus.Publish(GameplayEvents.OnGameplayEffectContainerChanged, _owner, null, null, null);
+            }
         }
 
         private void GetStackingEffectSpecByData(GameplayEffect effect, out GameplayEffectSpec spec)
@@ -315,7 +321,11 @@ namespace GAS.Runtime
 
         private void OnRefreshStackCountMakeContainerDirty()
         {
-            OnGameplayEffectContainerIsDirty?.Invoke();
+            // 通过EventBus发布容器状态变化事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.EventBus.Publish(GameplayEvents.OnGameplayEffectContainerChanged, _owner, null, null, null);
+            }
         }
         
         private GameplayEffectSpec Operation_AddNewGameplayEffectSpec(AbilitySystemComponent source,GameplayEffectSpec effectSpec,
@@ -326,6 +336,12 @@ namespace GAS.Runtime
             _gameplayEffectSpecs.Add(effectSpec);
             effectSpec.TriggerOnAdd();
             effectSpec.Apply();
+
+            // 通过EventBus发布游戏效果应用事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.PublishGameplayEffectEvent(effectSpec, GameplayEvents.OnGameplayEffectApplied);
+            }
 
             // If the gameplay effect was removed immediately after being applied, return false
             if (!_gameplayEffectSpecs.Contains(effectSpec))
@@ -338,7 +354,11 @@ namespace GAS.Runtime
                 return null;
             }
 
-            OnGameplayEffectContainerIsDirty?.Invoke();
+            // 通过EventBus发布容器状态变化事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.EventBus.Publish(GameplayEvents.OnGameplayEffectContainerChanged, _owner, null, null, null);
+            }
             return effectSpec;
         }
     }

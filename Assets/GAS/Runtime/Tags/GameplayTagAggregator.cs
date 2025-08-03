@@ -64,23 +64,21 @@ namespace GAS.Runtime
             return list;
         }
 
-        /// <summary>
-        /// 标签状态改变时触发的事件
-        /// </summary>
-        private event Action OnTagIsDirty;
-        
-        /// <summary>
-        /// 标签变化时的公共事件，用于通知其他系统（如AttributeAggregator）
-        /// </summary>
-        public event Action OnTagChanged;
+        // 标签变化事件已改为通过EventBus发布
 
         private void TagIsDirty(GameplayTagSet tags)
         {
             Profiler.BeginSample($"{nameof(GameplayTagAggregator)}::TagIsDirty(GameplayTagSet)");
             if (!tags.Empty) 
             {
-                OnTagIsDirty?.Invoke();
-                OnTagChanged?.Invoke(); // 通知其他系统标签已变化
+                // 通过EventBus发布标签变化事件
+                if (_owner?.EventBus != null)
+                {
+                    foreach (var tag in tags.Tags)
+                    {
+                        _owner.PublishTagEvent(tag, true); // 标签状态变化，默认为添加
+                    }
+                }
             }
             Profiler.EndSample();
         }
@@ -88,8 +86,13 @@ namespace GAS.Runtime
         private void TagIsDirty(GameplayTag tag)
         {
             Profiler.BeginSample($"{nameof(GameplayTagAggregator)}::TagIsDirty(GameplayTag)");
-            OnTagIsDirty?.Invoke();
-            OnTagChanged?.Invoke(); // 通知其他系统标签已变化
+            
+            // 通过EventBus发布单个标签变化事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.PublishTagEvent(tag, true); // 标签状态变化，默认为添加
+            }
+            
             Profiler.EndSample();
         }
 
@@ -114,14 +117,20 @@ namespace GAS.Runtime
         public void OnEnable()
         {
             Profiler.BeginSample($"[GC Mark] {nameof(GameplayTagAggregator)}::OnEnable()");
-            // 有 GC, 无法避免
-            OnTagIsDirty += _owner.GameplayEffectContainer.RefreshGameplayEffectState;
+            // 通过EventBus订阅标签变化事件来刷新GameplayEffect状态
+            if (_owner?.EventBus != null)
+            {
+                _owner.EventBus.Subscribe(GameplayEvents.OnTagCountChanged, (eventData) => 
+                {
+                    _owner.GameplayEffectContainer.RefreshGameplayEffectState();
+                });
+            }
             Profiler.EndSample();
         }
 
         public void OnDisable()
         {
-            OnTagIsDirty -= _owner.GameplayEffectContainer.RefreshGameplayEffectState;
+            // EventBus取消订阅会在EventBus清理时处理，这里不需要手动取消
         }
 
 

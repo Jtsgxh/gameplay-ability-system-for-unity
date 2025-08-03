@@ -63,9 +63,7 @@ namespace GAS.Runtime
         /// </remarks>
         public virtual void Dispose()
         {
-            _onActivateResult = null;
-            _onEndAbility = null;
-            _onCancelAbility = null;
+            // EventBus 清理会在 EventBus 本身处理，这里不需要手动清理
         }
 
         /// <summary>
@@ -101,72 +99,7 @@ namespace GAS.Runtime
         /// 用于统计和某些需要激活次数条件的机制。
         /// </remarks>
         public int ActiveCount { get; private set; }
-        protected event Action<AbilityActivateResult> _onActivateResult;
-        protected event Action _onEndAbility;
-        protected event Action _onCancelAbility;
 
-        /// <summary>
-        /// 注册技能激活结果回调
-        /// </summary>
-        /// <param name="onActivateResult">激活结果回调函数</param>
-        /// <remarks>
-        /// 无论激活成功或失败都会触发此回调，可用于UI反馈或日志记录。
-        /// </remarks>
-        public void RegisterActivateResult(Action<AbilityActivateResult> onActivateResult)
-        {
-            _onActivateResult += onActivateResult;
-        }
-
-        /// <summary>
-        /// 注销技能激活结果回调
-        /// </summary>
-        /// <param name="onActivateResult">要注销的回调函数</param>
-        public void UnregisterActivateResult(Action<AbilityActivateResult> onActivateResult)
-        {
-            _onActivateResult -= onActivateResult;
-        }
-
-        /// <summary>
-        /// 注册技能正常结束回调
-        /// </summary>
-        /// <param name="onEndAbility">结束回调函数</param>
-        /// <remarks>
-        /// 仅在技能正常结束时触发，取消时不会触发。
-        /// </remarks>
-        public void RegisterEndAbility(Action onEndAbility)
-        {
-            _onEndAbility += onEndAbility;
-        }
-
-        /// <summary>
-        /// 注销技能正常结束回调
-        /// </summary>
-        /// <param name="onEndAbility">要注销的回调函数</param>
-        public void UnregisterEndAbility(Action onEndAbility)
-        {
-            _onEndAbility -= onEndAbility;
-        }
-
-        /// <summary>
-        /// 注册技能取消回调
-        /// </summary>
-        /// <param name="onCancelAbility">取消回调函数</param>
-        /// <remarks>
-        /// 仅在技能被取消时触发，正常结束时不会触发。
-        /// </remarks>
-        public void RegisterCancelAbility(Action onCancelAbility)
-        {
-            _onCancelAbility += onCancelAbility;
-        }
-
-        /// <summary>
-        /// 注销技能取消回调
-        /// </summary>
-        /// <param name="onCancelAbility">要注销的回调函数</param>
-        public void UnregisterCancelAbility(Action onCancelAbility)
-        {
-            _onCancelAbility -= onCancelAbility;
-        }
 
         /// <summary>
         /// 设置技能等级
@@ -375,7 +308,18 @@ namespace GAS.Runtime
                 ActivateAbility(_abilityArguments);
             }
 
-            _onActivateResult?.Invoke(result);
+            // 通过EventBus发布技能激活结果事件
+            if (Owner?.EventBus != null)
+            {
+                var eventName = success ? GameplayEvents.OnAbilityActivated : GameplayEvents.OnAbilityFailed;
+                Owner.EventBus.Publish(eventName, Owner, null, null, 
+                    new System.Collections.Generic.Dictionary<string, object>
+                    {
+                        { "abilityName", Ability.Name },
+                        { "result", result }
+                    });
+            }
+            
             return success;
         }
 
@@ -398,7 +342,16 @@ namespace GAS.Runtime
             IsActive = false;
             Owner.GameplayTagAggregator.RestoreGameplayAbilityDynamicTags(this);
             EndAbility();
-            _onEndAbility?.Invoke();
+            
+            // 通过EventBus发布技能结束事件
+            if (Owner?.EventBus != null)
+            {
+                Owner.EventBus.Publish(GameplayEvents.OnAbilityEnded, Owner, null, null,
+                    new System.Collections.Generic.Dictionary<string, object>
+                    {
+                        { "abilityName", Ability.Name }
+                    });
+            }
         }
 
         /// <summary>
@@ -421,7 +374,16 @@ namespace GAS.Runtime
 
             Owner.GameplayTagAggregator.RestoreGameplayAbilityDynamicTags(this);
             CancelAbility();
-            _onCancelAbility?.Invoke();
+            
+            // 通过EventBus发布技能取消事件
+            if (Owner?.EventBus != null)
+            {
+                Owner.EventBus.Publish(GameplayEvents.OnAbilityCancelled, Owner, null, null,
+                    new System.Collections.Generic.Dictionary<string, object>
+                    {
+                        { "abilityName", Ability.Name }
+                    });
+            }
         }
 
         /// <summary>

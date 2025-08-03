@@ -15,12 +15,10 @@ namespace GAS.Runtime
         public float MinValue { get; private set; }
         public float MaxValue { get; private set; }
 
-        public delegate float OnPreValueChange(AttributeValueProcessor processor, float oldValue, float newValue);
-
-        public delegate void OnPostValueChange(AttributeValueProcessor processor, float oldValue, float newValue);
-
-        private OnPreValueChange _onPreValueChange;
-        private event OnPostValueChange _onPostValueChange;
+        /// <summary>
+        /// 拥有此处理器的AbilitySystemComponent，用于EventBus事件发布
+        /// </summary>
+        private AbilitySystemComponent _owner;
 
         private AttributeBase Base { get; }
         private AttributeBase BaseAdditiveBonus { get; }
@@ -32,6 +30,7 @@ namespace GAS.Runtime
         /// 计算公式:
         ///     最终值 = (基础值 + 基础附加值) * (1 + 累加加成) * 累乘加成 * (1 - 最大值惩罚)
         /// </summary>
+        /// <param name="owner">拥有者组件，用于EventBus事件发布</param>
         /// <param name="base">基础值</param>
         /// <param name="baseAdditiveBonus">基础附加值：默认0，应使用加法来修改。
         ///     一般用于增加固定数值的装备加成: 比如增加10点攻击力。
@@ -52,6 +51,7 @@ namespace GAS.Runtime
         /// <param name="minValue">最小值</param>
         /// <param name="maxValue">最大值</param>
         public AttributeValueProcessor(
+            AbilitySystemComponent owner,
             AttributeBase @base,
             AttributeBase baseAdditiveBonus = null,
             AttributeBase additiveBonus = null,
@@ -60,6 +60,7 @@ namespace GAS.Runtime
             float minValue = float.MinValue,
             float maxValue = float.MaxValue)
         {
+            _owner = owner;
             Base = @base;
             BaseAdditiveBonus = baseAdditiveBonus;
             AdditiveBonus = additiveBonus;
@@ -76,8 +77,6 @@ namespace GAS.Runtime
 
         public void Dispose()
         {
-            _onPreValueChange = null;
-            _onPostValueChange = null;
             UnRegisterAttributeChangedListen();
         }
 
@@ -100,61 +99,100 @@ namespace GAS.Runtime
             Value = CalculateValue();
         }
 
-        /// <summary>
-        /// 可以使用这个来做自定义的伤害钳制函数, 甚至当成自定义的数值计算函数
-        /// 参考英雄联盟中移动速度的计算, 当移动速度超过或低于一定数值会被修正: https://leagueoflegends.fandom.com/wiki/Movement_speed
-        /// </summary>
-        public void SetPreValueChangeCallback(OnPreValueChange action)
-        {
-            _onPreValueChange = action;
-        }
-
-        public void RegisterPostValueChange(OnPostValueChange action)
-        {
-            _onPostValueChange += action;
-        }
-
-        public void UnregisterPostValueChange(OnPostValueChange action)
-        {
-            _onPostValueChange -= action;
-        }
 
         private void RegisterAttributeChangedListen()
         {
-            Base.RegisterPostCurrentValueChange(OnAttributeChanged);
-            BaseAdditiveBonus?.RegisterPostCurrentValueChange(OnAttributeChanged);
-            AdditiveBonus?.RegisterPostCurrentValueChange(OnAttributeChanged);
-            MultiplicativeBonus?.RegisterPostCurrentValueChange(OnAttributeChanged);
-            MaxValuePenalty?.RegisterPostCurrentValueChange(OnAttributeChanged);
+            // 通过EventBus订阅属性变化事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.EventBus.Subscribe(GameplayEvents.OnAttributeChanged, OnAttributeChangedFromEventBus);
+            }
         }
 
         private void UnRegisterAttributeChangedListen()
         {
-            Base.UnregisterPostCurrentValueChange(OnAttributeChanged);
-            BaseAdditiveBonus?.UnregisterPostCurrentValueChange(OnAttributeChanged);
-            AdditiveBonus?.UnregisterPostCurrentValueChange(OnAttributeChanged);
-            MultiplicativeBonus?.UnregisterPostCurrentValueChange(OnAttributeChanged);
-            MaxValuePenalty?.UnregisterPostCurrentValueChange(OnAttributeChanged);
+            // 通过EventBus取消订阅属性变化事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.EventBus.Unsubscribe(GameplayEvents.OnAttributeChanged, OnAttributeChangedFromEventBus);
+            }
         }
 
+        /// <summary>
+        /// 处理来自EventBus的属性变化事件
+        /// </summary>
+        private void OnAttributeChangedFromEventBus(GameplayEventData eventData)
+        {
+            if (eventData?.Parameters == null) return;
+            
+            var attributeName = eventData.Parameters.TryGetValue("attributeName", out var attrNameObj) ? attrNameObj as string : null;
+            if (string.IsNullOrEmpty(attributeName)) return;
+            
+            // 检查是否是我们关心的属性
+            if (IsRelevantAttribute(attributeName))
+            {
+                var oldValue = Value;
+                var newValue = CalculateValue();
+                
+                newValue = Mathf.Clamp(newValue, MinValue, MaxValue);
+                
+                if (!Mathf.Approximately(oldValue, newValue))
+                {
+                    Value = newValue;
+                    
+                    // 通过EventBus发布处理器数值变化事件
+                    if (_owner?.EventBus != null)
+                    {
+                        var parameters = new System.Collections.Generic.Dictionary<string, object>
+                        {
+                            { "processor", this },
+                            { "oldValue", oldValue },
+                            { "newValue", newValue }
+                        };
+                        _owner.EventBus.Publish("AttributeValueProcessor.ValueChanged", _owner, null, null, parameters);
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 检查属性名称是否与此处理器相关
+        /// </summary>
+        private bool IsRelevantAttribute(string attributeName)
+        {
+            return (Base != null && Base.Name == attributeName) ||
+                   (BaseAdditiveBonus != null && BaseAdditiveBonus.Name == attributeName) ||
+                   (AdditiveBonus != null && AdditiveBonus.Name == attributeName) ||
+                   (MultiplicativeBonus != null && MultiplicativeBonus.Name == attributeName) ||
+                   (MaxValuePenalty != null && MaxValuePenalty.Name == attributeName);
+        }
+        
+        /// <summary>
+        /// 保留旧版本兼容性的属性变化处理方法
+        /// </summary>
         private void OnAttributeChanged(AttributeBase attribute, float attrOldValue, float attrNewValue)
         {
             var oldValue = Value;
             var newValue = CalculateValue();
 
             newValue = Mathf.Clamp(newValue, MinValue, MaxValue);
-            if (_onPreValueChange != null)
+            
+            if (!Mathf.Approximately(oldValue, newValue))
             {
-                newValue = _onPreValueChange(this, oldValue, newValue);
+                Value = newValue;
+                
+                // 通过EventBus发布处理器数值变化事件
+                if (_owner?.EventBus != null)
+                {
+                    var parameters = new System.Collections.Generic.Dictionary<string, object>
+                    {
+                        { "processor", this },
+                        { "oldValue", oldValue },
+                        { "newValue", newValue }
+                    };
+                    _owner.EventBus.Publish("AttributeValueProcessor.ValueChanged", _owner, null, null, parameters);
+                }
             }
-
-            if (Mathf.Approximately(oldValue, newValue))
-            {
-                return;
-            }
-
-            Value = newValue;
-            _onPostValueChange?.Invoke(this, oldValue, newValue);
         }
 
         private float CalculateValue()

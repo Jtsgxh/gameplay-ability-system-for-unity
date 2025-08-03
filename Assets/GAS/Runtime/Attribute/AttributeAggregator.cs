@@ -90,14 +90,23 @@ namespace GAS.Runtime
             if (_processedAttribute == null || _owner?.GameplayEffectContainer == null)
                 return;
                 
-            _processedAttribute.RegisterPostBaseValueChange(UpdateCurrentValueWhenBaseValueIsDirty);
-            _owner.GameplayEffectContainer.RegisterOnGameplayEffectContainerIsDirty(RefreshModifierCache);
+            // 通过EventBus订阅属性基础值变化事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.EventBus.Subscribe(GameplayEvents.OnAttributePostChange, OnAttributeBaseValueChanged);
+            }
+            
+            // 通过EventBus订阅容器变化事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.EventBus.Subscribe(GameplayEvents.OnGameplayEffectContainerChanged, OnGameplayEffectContainerChanged);
+            }
             
             // 监听标签变化，当标签变化时重新刷新Modifier缓存
             // 因为Source/Target标签的变化可能会影响Modifier的生效状态
-            if (_owner.GameplayTagAggregator != null)
+            if (_owner?.EventBus != null)
             {
-                _owner.GameplayTagAggregator.OnTagChanged += RefreshModifierCache;
+                _owner.EventBus.Subscribe(GameplayEvents.OnTagCountChanged, OnTagChanged);
             }
             
             // 启用时刷新一次缓存
@@ -112,15 +121,23 @@ namespace GAS.Runtime
         /// </remarks>
         public void OnDisable()
         {
-            if (_processedAttribute != null)
-                _processedAttribute.UnregisterPostBaseValueChange(UpdateCurrentValueWhenBaseValueIsDirty);
+            // 通过EventBus取消订阅属性基础值变化事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.EventBus.Unsubscribe(GameplayEvents.OnAttributePostChange, OnAttributeBaseValueChanged);
+            }
                 
-            if (_owner?.GameplayEffectContainer != null)
-                _owner.GameplayEffectContainer.UnregisterOnGameplayEffectContainerIsDirty(RefreshModifierCache);
+            // 通过EventBus取消订阅容器变化事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.EventBus.Unsubscribe(GameplayEvents.OnGameplayEffectContainerChanged, OnGameplayEffectContainerChanged);
+            }
                 
-            // 注销标签变化事件监听
-            if (_owner?.GameplayTagAggregator != null)
-                _owner.GameplayTagAggregator.OnTagChanged -= RefreshModifierCache;
+            // 通过EventBus取消订阅标签变化事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.EventBus.Unsubscribe(GameplayEvents.OnTagCountChanged, OnTagChanged);
+            }
                 
             // 清理依赖属性监听
             UnregisterAttributeChangedListen();
@@ -426,7 +443,11 @@ namespace GAS.Runtime
                 
                 if (containsAttribute)
                 {
-                    attributeSet[mmc.attributeShortName]?.UnregisterPostCurrentValueChange(OnAttributeChanged);
+                    // 通过EventBus取消订阅属性变化事件
+                    if (targetComponent?.EventBus != null)
+                    {
+                        targetComponent.EventBus.Unsubscribe(GameplayEvents.OnAttributeChanged, OnAttributeChangedEventBus);
+                    }
                 }
             }
         }
@@ -464,13 +485,42 @@ namespace GAS.Runtime
                 
                 if (containsAttribute)
                 {
-                    attributeSet[mmc.attributeShortName]?.RegisterPostCurrentValueChange(OnAttributeChanged);
+                    // 通过EventBus订阅属性变化事件
+                    if (targetComponent?.EventBus != null)
+                    {
+                        targetComponent.EventBus.Subscribe(GameplayEvents.OnAttributeChanged, OnAttributeChangedEventBus);
+                    }
                 }
             }
         }
 
         /// <summary>
-        /// 处理依赖属性变化事件
+        /// 处理依赖属性变化事件 (EventBus版本)
+        /// </summary>
+        /// <param name="eventData">事件数据</param>
+        private void OnAttributeChangedEventBus(GameplayEventData eventData)
+        {
+            if (_modifierCache.Count == 0 || eventData?.Parameters == null)
+                return;
+                
+            var attributeName = eventData.Parameters.TryGetValue("attributeName", out var attrNameObj) ? attrNameObj as string : null;
+            if (string.IsNullOrEmpty(attributeName))
+                return;
+                
+            // 检查是否有修饰符依赖于这个属性
+            for (int i = 0; i < _modifierCache.Count; i++)
+            {
+                var entry = _modifierCache[i];
+                if (IsModifierDependentOnAttributeName(entry, attributeName))
+                {
+                    UpdateCurrentValueWhenModifierIsDirty();
+                    break; // 只需要触发一次更新
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 处理依赖属性变化事件 (旧版本兼容)
         /// </summary>
         /// <param name="attribute">发生变化的属性</param>
         /// <param name="oldValue">旧值</param>
@@ -493,6 +543,22 @@ namespace GAS.Runtime
         }
         
         /// <summary>
+        /// 检查修饰符是否依赖于指定属性名称
+        /// </summary>
+        /// <param name="entry">修饰符缓存项</param>
+        /// <param name="attributeName">属性名称</param>
+        /// <returns>是否依赖</returns>
+        private static bool IsModifierDependentOnAttributeName(ModifierCacheEntry entry, string attributeName)
+        {
+            if (entry.modifier.MMC == null || !(entry.modifier.MMC is AttributeBasedModCalculation mmc) ||
+                mmc.captureType != AttributeBasedModCalculation.GEAttributeCaptureType.Track ||
+                !string.Equals(attributeName, mmc.attributeName, StringComparison.Ordinal))
+                return false;
+                
+            return true;
+        }
+        
+        /// <summary>
         /// 检查修饰符是否依赖于指定属性
         /// </summary>
         /// <param name="entry">修饰符缓存项</param>
@@ -510,6 +576,46 @@ namespace GAS.Runtime
                 : entry.effectSpec?.Source;
                 
             return attribute.Owner == expectedOwner;
+        }
+        
+        /// <summary>
+        /// 处理GameplayEffect容器变化事件
+        /// </summary>
+        /// <param name="eventData">事件数据</param>
+        private void OnGameplayEffectContainerChanged(GameplayEventData eventData)
+        {
+            RefreshModifierCache();
+        }
+        
+        /// <summary>
+        /// 处理属性基础值变化事件
+        /// </summary>
+        /// <param name="eventData">事件数据</param>
+        private void OnAttributeBaseValueChanged(GameplayEventData eventData)
+        {
+            if (eventData?.Parameters == null)
+                return;
+                
+            var attributeName = eventData.Parameters.TryGetValue("attributeName", out var attrNameObj) ? attrNameObj as string : null;
+            if (string.Equals(attributeName, _processedAttribute.Name, StringComparison.Ordinal))
+            {
+                var oldValue = eventData.Parameters.TryGetValue("oldValue", out var oldValueObj) ? oldValueObj : null;
+                var newValue = eventData.Parameters.TryGetValue("newValue", out var newValueObj) ? newValueObj : null;
+                
+                if (oldValue is float oldVal && newValue is float newVal)
+                {
+                    UpdateCurrentValueWhenBaseValueIsDirty(_processedAttribute, oldVal, newVal);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 处理标签变化事件
+        /// </summary>
+        /// <param name="eventData">事件数据</param>
+        private void OnTagChanged(GameplayEventData eventData)
+        {
+            RefreshModifierCache();
         }
         
         #endregion

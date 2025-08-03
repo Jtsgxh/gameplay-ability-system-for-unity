@@ -208,6 +208,11 @@ namespace GAS.Runtime
     public class GrantedAbilitySpecFromEffect
     {
         /// <summary>
+        /// 存储事件订阅的处理器，用于清理
+        /// </summary>
+        private System.Action<GameplayEventData> _endAbilityHandler;
+        private System.Action<GameplayEventData> _cancelAbilityHandler;
+        /// <summary>
         /// 授予技能的原始定义
         /// </summary>
         public readonly GrantedAbilityFromEffect GrantedAbility;
@@ -275,24 +280,61 @@ namespace GAS.Runtime
                 Owner.TryActivateAbility(AbilityName);
             }
 
+            // 通过EventBus订阅技能结束和取消事件
             switch (RemovePolicy)
             {
                 case GrantedAbilityRemovePolicy.WhenEnd:
-                    AbilitySpec.RegisterEndAbility(RemoveSelf);
+                    _endAbilityHandler = (eventData) => {
+                        var abilityName = eventData.GetParameter<string>("abilityName");
+                        if (abilityName == AbilityName) RemoveSelf();
+                    };
+                    Owner.EventBus?.Subscribe(GameplayEvents.OnAbilityEnded, _endAbilityHandler);
                     break;
                 case GrantedAbilityRemovePolicy.WhenCancel:
-                    AbilitySpec.RegisterCancelAbility(RemoveSelf);
+                    _cancelAbilityHandler = (eventData) => {
+                        var abilityName = eventData.GetParameter<string>("abilityName");
+                        if (abilityName == AbilityName) RemoveSelf();
+                    };
+                    Owner.EventBus?.Subscribe(GameplayEvents.OnAbilityCancelled, _cancelAbilityHandler);
                     break;
                 case GrantedAbilityRemovePolicy.WhenCancelOrEnd:
-                    AbilitySpec.RegisterEndAbility(RemoveSelf);
-                    AbilitySpec.RegisterCancelAbility(RemoveSelf);
+                    _endAbilityHandler = (eventData) => {
+                        var abilityName = eventData.GetParameter<string>("abilityName");
+                        if (abilityName == AbilityName) RemoveSelf();
+                    };
+                    _cancelAbilityHandler = (eventData) => {
+                        var abilityName = eventData.GetParameter<string>("abilityName");
+                        if (abilityName == AbilityName) RemoveSelf();
+                    };
+                    Owner.EventBus?.Subscribe(GameplayEvents.OnAbilityEnded, _endAbilityHandler);
+                    Owner.EventBus?.Subscribe(GameplayEvents.OnAbilityCancelled, _cancelAbilityHandler);
                     break;
             }
         }
 
         private void RemoveSelf()
         {
+            // 清理事件订阅
+            CleanupEventSubscriptions();
             Owner.RemoveAbility(AbilityName);
+        }
+        
+        /// <summary>
+        /// 清理事件订阅，防止内存泄漏
+        /// </summary>
+        public void CleanupEventSubscriptions()
+        {
+            if (_endAbilityHandler != null)
+            {
+                Owner.EventBus?.Unsubscribe(GameplayEvents.OnAbilityEnded, _endAbilityHandler);
+                _endAbilityHandler = null;
+            }
+            
+            if (_cancelAbilityHandler != null)
+            {
+                Owner.EventBus?.Unsubscribe(GameplayEvents.OnAbilityCancelled, _cancelAbilityHandler);
+                _cancelAbilityHandler = null;
+            }
         }
     }
 }

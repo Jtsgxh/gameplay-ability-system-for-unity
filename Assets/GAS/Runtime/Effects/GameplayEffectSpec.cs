@@ -39,14 +39,7 @@ namespace GAS.Runtime
         /// </summary>
         private List<GameplayCueDurationalSpec> _cueDurationalSpecs = new List<GameplayCueDurationalSpec>();
 
-        /// <summary>
-        /// The execution type of onImmunity is one shot.
-        /// </summary>
-#pragma warning disable CS0067 // 事件从未使用过
-        public event Action<AbilitySystemComponent, GameplayEffectSpec> onImmunity;
-#pragma warning restore CS0067 // 事件从未使用过
-        
-        public event Action<int,int> onStackCountChanged;
+        // 硬编码委托事件已替换为EventBus机制
 
         
         /// <summary>
@@ -585,9 +578,16 @@ namespace GAS.Runtime
 
         public void TriggerOnImmunity()
         {
-            // TODO 免疫触发事件逻辑需要调整
-            // onImmunity?.Invoke(Owner, this);
-            // onImmunity = null;
+            // 通过EventBus发布免疫事件
+            if (Owner?.EventBus != null)
+            {
+                var parameters = new Dictionary<string, object>
+                {
+                    { "effectSpec", this },
+                    { "target", Owner }
+                };
+                Owner.EventBus.Publish(GameplayEvents.OnGameplayEffectImmunity, Owner, null, null, parameters);
+            }
         }
 
         public void RemoveSelf(bool isPrematureRemoval = true)
@@ -817,26 +817,20 @@ namespace GAS.Runtime
         private void OnStackCountChange(int oldStackCount, int newStackCount)
         {
             
-            onStackCountChanged?.Invoke(oldStackCount, newStackCount);
+            // 通过EventBus发布堆叠数变化事件
+            if (Owner?.EventBus != null)
+            {
+                var parameters = new Dictionary<string, object>
+                {
+                    { "effectSpec", this },
+                    { "oldStackCount", oldStackCount },
+                    { "newStackCount", newStackCount }
+                };
+                Owner.EventBus.Publish(GameplayEvents.OnGameplayEffectStackChanged, Owner, null, null, parameters);
+            }
         }
         
-        /// <summary>
-        /// 注册堆叠数变化回调
-        /// </summary>
-        /// <param name="callback">回调函数，参数为(旧堆叠数, 新堆叠数)</param>
-        public void RegisterOnStackCountChanged(Action<int, int> callback)
-        {
-            onStackCountChanged += callback;
-        }
-
-        /// <summary>
-        /// 注销堆叠数变化回调
-        /// </summary>
-        /// <param name="callback">要移除的回调函数</param>
-        public void UnregisterOnStackCountChanged(Action<int, int> callback)
-        {
-            onStackCountChanged -= callback;
-        }
+        // 堆叠数变化事件已改为通过EventBus发布，请使用EventBus.Subscribe订阅相应事件
 
         #endregion
         
@@ -885,7 +879,7 @@ namespace GAS.Runtime
                 Action<GameplayEventData> handler = (eventData) => OnEventReceived(eventData, conditions);
                 
                 // 注册到事件总线
-                GameplayEventBus.Instance.Subscribe(eventName, handler);
+                Owner.EventBus.Subscribe(eventName, handler);
                 
                 // 保存引用用于清理
                 _eventListeners[eventName] = handler;
@@ -903,7 +897,7 @@ namespace GAS.Runtime
         {
             foreach (var kvp in _eventListeners)
             {
-                GameplayEventBus.Instance.Unsubscribe(kvp.Key, kvp.Value);
+                Owner.EventBus.Unsubscribe(kvp.Key, kvp.Value);
             }
             
             _eventListeners.Clear();

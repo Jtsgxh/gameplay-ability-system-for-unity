@@ -42,30 +42,6 @@ namespace GAS.Runtime
         /// </summary>
         public readonly string ShortName;
         
-        /// <summary>
-        /// 当前值改变后的事件
-        /// </summary>
-        protected event Action<AttributeBase, float, float> _onPostCurrentValueChange;
-        
-        /// <summary>
-        /// 基础值改变后的事件
-        /// </summary>
-        protected event Action<AttributeBase, float, float> _onPostBaseValueChange;
-        
-        /// <summary>
-        /// 当前值改变前的事件
-        /// </summary>
-        protected event Action<AttributeBase, float> _onPreCurrentValueChange;
-        
-        /// <summary>
-        /// 基础值改变前的事件
-        /// </summary>
-        protected event Func<AttributeBase, float, float> _onPreBaseValueChange;
-        
-        /// <summary>
-        /// 基础值改变前的监听器列表
-        /// </summary>
-        protected IEnumerable<Func<AttributeBase, float, float>> _preBaseValueChangeListeners;
 
         /// <summary>
         /// 属性的值结构
@@ -181,20 +157,24 @@ namespace GAS.Runtime
         /// <remarks>
         /// 设置流程：
         /// 1. 将值限制在最小值和最大值之间
-        /// 2. 触发变化前事件
-        /// 3. 更新属性值
-        /// 4. 如果值发生变化，触发变化后事件
+        /// 2. 更新属性值
+        /// 3. 如果值发生变化，通过EventBus发布变化事件
         /// </remarks>
         public void SetCurrentValue(float value)
         {
             value = Mathf.Clamp(value, _value.MinValue, _value.MaxValue);
 
-            _onPreCurrentValueChange?.Invoke(this, value);
-
             var oldValue = CurrentValue;
             _value.SetCurrentValue(value);
 
-            if (!Mathf.Approximately(oldValue, value)) _onPostCurrentValueChange?.Invoke(this, oldValue, value);
+            if (!Mathf.Approximately(oldValue, value)) 
+            {
+                // 通过EventBus发布属性变化事件
+                if (_owner?.EventBus != null)
+                {
+                    _owner.PublishAttributeEvent(Name, oldValue, value, GameplayEvents.OnAttributeChanged);
+                }
+            }
         }
 
         /// <summary>
@@ -203,23 +183,24 @@ namespace GAS.Runtime
         /// <param name="value">新的基础值</param>
         /// <remarks>
         /// 设置流程：
-        /// 1. 触发基础值变化前事件（可能修改值）
-        /// 2. 更新基础值
-        /// 3. 如果值发生变化，触发变化后事件
+        /// 1. 更新基础值
+        /// 2. 如果值发生变化，通过EventBus发布变化事件
         /// 
         /// 基础值的变化会影响当前值的计算。
         /// </remarks>
         public void SetBaseValue(float value)
         {
-            if (_onPreBaseValueChange != null)
-            {
-                value = InvokePreBaseValueChangeListeners(value);
-            }
-
             var oldValue = _value.BaseValue;
             _value.SetBaseValue(value);
 
-            if (!Mathf.Approximately(oldValue, value)) _onPostBaseValueChange?.Invoke(this, oldValue, value);
+            if (!Mathf.Approximately(oldValue, value)) 
+            {
+                // 通过EventBus发布基础值变化事件
+                if (_owner?.EventBus != null)
+                {
+                    _owner.PublishAttributeEvent(Name, oldValue, value, GameplayEvents.OnAttributePostChange);
+                }
+            }
         }
 
         public void SetCurrentValueWithoutEvent(float value)
@@ -232,65 +213,11 @@ namespace GAS.Runtime
             _value.SetBaseValue(value);
         }
 
-        public void RegisterPreBaseValueChange(Func<AttributeBase, float, float> func)
-        {
-            _onPreBaseValueChange += func;
-            _preBaseValueChangeListeners =
-                _onPreBaseValueChange?.GetInvocationList().Cast<Func<AttributeBase, float, float>>();
-        }
-
-        public void RegisterPostBaseValueChange(Action<AttributeBase, float, float> action)
-        {
-            _onPostBaseValueChange += action;
-        }
-
-        public void RegisterPreCurrentValueChange(Action<AttributeBase, float> action)
-        {
-            _onPreCurrentValueChange += action;
-        }
-
-        public void RegisterPostCurrentValueChange(Action<AttributeBase, float, float> action)
-        {
-            _onPostCurrentValueChange += action;
-        }
-
-        public void UnregisterPreBaseValueChange(Func<AttributeBase, float, float> func)
-        {
-            _onPreBaseValueChange -= func;
-            _preBaseValueChangeListeners =
-                _onPreBaseValueChange?.GetInvocationList().Cast<Func<AttributeBase, float, float>>();
-        }
-
-        public void UnregisterPostBaseValueChange(Action<AttributeBase, float, float> action)
-        {
-            _onPostBaseValueChange -= action;
-        }
-
-        public void UnregisterPreCurrentValueChange(Action<AttributeBase, float> action)
-        {
-            _onPreCurrentValueChange -= action;
-        }
-
-        public void UnregisterPostCurrentValueChange(Action<AttributeBase, float, float> action)
-        {
-            _onPostCurrentValueChange -= action;
-        }
 
         public virtual void Dispose()
         {
-            _onPreBaseValueChange = null;
-            _onPostBaseValueChange = null;
-            _onPreCurrentValueChange = null;
-            _onPostCurrentValueChange = null;
+            // 清理资源，事件处理已转移到EventBus
         }
 
-        private float InvokePreBaseValueChangeListeners(float value)
-        {
-            if (_preBaseValueChangeListeners == null) return value;
-
-            foreach (var t in _preBaseValueChangeListeners)
-                value = t.Invoke(this, value);
-            return value;
-        }
     }
 }

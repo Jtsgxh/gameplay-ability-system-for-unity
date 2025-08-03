@@ -114,6 +114,8 @@ namespace GAS.Runtime
         public const string OnGameplayEffectActivated = "Gameplay.Effect.Activated";
         public const string OnGameplayEffectDeactivated = "Gameplay.Effect.Deactivated";
         public const string OnGameplayEffectStackChanged = "Gameplay.Effect.StackChanged";
+        public const string OnGameplayEffectImmunity = "Gameplay.Effect.Immunity";
+        public const string OnGameplayEffectContainerChanged = "Gameplay.Effect.ContainerChanged";
         
         // 属性相关事件
         public const string OnAttributeChanged = "Gameplay.Attribute.Changed";
@@ -130,13 +132,115 @@ namespace GAS.Runtime
         public const string OnCombatStarted = "Gameplay.Combat.Started";
         public const string OnCombatEnded = "Gameplay.Combat.Ended";
         public const string OnTargetChanged = "Gameplay.Target.Changed";
+        
+        // 扩展事件常量
+        /// <summary>
+        /// 技能授予事件 - 当技能被授予给实体时触发
+        /// </summary>
+        public const string OnAbilityGranted = "Gameplay.Ability.Granted";
+        
+        /// <summary>
+        /// 伤害吸收事件 - 当伤害被护盾吸收时触发
+        /// </summary>
+        public const string OnDamageAbsorbed = "Gameplay.Damage.Absorbed";
+        
+        /// <summary>
+        /// 暴击事件 - 当发生暴击时触发
+        /// </summary>
+        public const string OnCriticalHit = "Gameplay.Damage.Critical";
+        
+        /// <summary>
+        /// 护盾破碎事件 - 当护盾被完全破坏时触发
+        /// </summary>
+        public const string OnShieldBroken = "Gameplay.Shield.Broken";
+        
+        /// <summary>
+        /// 护盾恢复事件 - 当护盾值恢复时触发
+        /// </summary>
+        public const string OnShieldRestored = "Gameplay.Shield.Restored";
+        
+        /// <summary>
+        /// 等级提升事件 - 当角色等级提升时触发
+        /// </summary>
+        public const string OnLevelUp = "Gameplay.Character.LevelUp";
+        
+        /// <summary>
+        /// 经验获得事件 - 当获得经验值时触发
+        /// </summary>
+        public const string OnExperienceGained = "Gameplay.Character.ExperienceGained";
+        
+        /// <summary>
+        /// 击杀事件 - 当击杀目标时触发
+        /// </summary>
+        public const string OnKillTarget = "Gameplay.Combat.Kill";
+        
+        /// <summary>
+        /// 被击杀事件 - 当被其他实体击杀时触发
+        /// </summary>
+        public const string OnKilledBy = "Gameplay.Combat.KilledBy";
+        
+        #region 辅助方法
+        
+        /// <summary>
+        /// 构建属性变化事件名
+        /// </summary>
+        /// <param name="attributeName">属性名称</param>
+        /// <returns>完整的属性变化事件名</returns>
+        public static string GetAttributeChangedEventName(string attributeName)
+        {
+            return $"{OnAttributeChanged}.{attributeName}";
+        }
+        
+        /// <summary>
+        /// 构建属性预变化事件名
+        /// </summary>
+        /// <param name="attributeName">属性名称</param>
+        /// <returns>完整的属性预变化事件名</returns>
+        public static string GetAttributePreChangeEventName(string attributeName)
+        {
+            return $"{OnAttributePreChange}.{attributeName}";
+        }
+        
+        /// <summary>
+        /// 构建属性后变化事件名
+        /// </summary>
+        /// <param name="attributeName">属性名称</param>
+        /// <returns>完整的属性后变化事件名</returns>
+        public static string GetAttributePostChangeEventName(string attributeName)
+        {
+            return $"{OnAttributePostChange}.{attributeName}";
+        }
+        
+        /// <summary>
+        /// 构建技能专属事件名
+        /// </summary>
+        /// <param name="abilityName">技能名称</param>
+        /// <param name="eventType">事件类型（如"Activated", "Ended"等）</param>
+        /// <returns>完整的技能事件名</returns>
+        public static string GetAbilityEventName(string abilityName, string eventType)
+        {
+            return $"Gameplay.Ability.{abilityName}.{eventType}";
+        }
+        
+        /// <summary>
+        /// 构建效果专属事件名
+        /// </summary>
+        /// <param name="effectName">效果名称</param>
+        /// <param name="eventType">事件类型（如"Applied", "Removed"等）</param>
+        /// <returns>完整的效果事件名</returns>
+        public static string GetEffectEventName(string effectName, string eventType)
+        {
+            return $"Gameplay.Effect.{effectName}.{eventType}";
+        }
+        
+        #endregion
     }
 
     /// <summary>
-    /// 游戏事件总线 - 全局事件管理系统
+    /// 游戏事件总线 - 事件管理系统
     /// </summary>
     /// <remarks>
-    /// GameplayEventBus提供了一个全局的事件发布/订阅系统，
+    /// GameplayEventBus提供了事件发布/订阅系统，
     /// 用于在游戏的不同组件之间传递事件信息。
     /// 
     /// 特点：
@@ -148,26 +252,6 @@ namespace GAS.Runtime
     public class GameplayEventBus
     {
         /// <summary>
-        /// 单例实例
-        /// </summary>
-        private static GameplayEventBus _instance;
-        
-        /// <summary>
-        /// 获取事件总线单例实例
-        /// </summary>
-        public static GameplayEventBus Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new GameplayEventBus();
-                }
-                return _instance;
-            }
-        }
-        
-        /// <summary>
         /// 事件处理器字典 - 事件名 -> 处理器列表
         /// </summary>
         private readonly Dictionary<string, List<Action<GameplayEventData>>> _eventHandlers;
@@ -177,7 +261,7 @@ namespace GAS.Runtime
         /// </summary>
         private readonly object _lock = new object();
 
-        private GameplayEventBus()
+        public GameplayEventBus()
         {
             _eventHandlers = new Dictionary<string, List<Action<GameplayEventData>>>();
         }

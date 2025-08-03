@@ -22,6 +22,11 @@ namespace GAS.Runtime
         public AttributeSetContainer AttributeSetContainer { get; private set; }
 
         /// <summary>
+        /// 事件总线实例
+        /// </summary>
+        public GameplayEventBus EventBus { get; private set; }
+
+        /// <summary>
         /// 标记组件是否已经准备完毕
         /// </summary>
         private bool _ready;
@@ -29,11 +34,27 @@ namespace GAS.Runtime
         private void Prepare()
         {
             if (_ready) return;
+            
+            // 初始化EventBus（如果尚未设置）
+            if (EventBus == null)
+            {
+                EventBus = new GameplayEventBus();
+            }
+            
             AbilityContainer = new AbilityContainer(this);
             GameplayEffectContainer = new GameplayEffectContainer(this);
             AttributeSetContainer = new AttributeSetContainer(this);
             GameplayTagAggregator = new GameplayTagAggregator(this);
             _ready = true;
+        }
+        
+        /// <summary>
+        /// 设置EventBus实例（用于依赖注入）
+        /// </summary>
+        /// <param name="eventBus">事件总线实例</param>
+        public void SetEventBus(GameplayEventBus eventBus)
+        {
+            EventBus = eventBus;
         }
 
         public void Enable()
@@ -592,7 +613,7 @@ namespace GAS.Runtime
                 return;
             }
             
-            GameplayEventBus.Instance.Publish(eventName, this, target, eventTags, parameters);
+            EventBus.Publish(eventName, this, target, eventTags, parameters);
         }
         
         /// <summary>

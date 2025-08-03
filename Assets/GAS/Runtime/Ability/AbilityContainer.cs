@@ -148,6 +148,12 @@ namespace GAS.Runtime
 
             if (!_abilities[abilityName].TryActivateAbility(args)) return false;
 
+            // 发布技能激活事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.PublishAbilityEvent(abilityName, GameplayEvents.OnAbilityActivated);
+            }
+
             var tags = _abilities[abilityName].Ability.Tag.CancelAbilitiesWithTags;
             foreach (var kv in _abilities)
             {
@@ -177,6 +183,12 @@ namespace GAS.Runtime
         {
             if (!_abilities.ContainsKey(abilityName)) return;
             _abilities[abilityName].TryEndAbility();
+            
+            // 发布技能结束事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.PublishAbilityEvent(abilityName, GameplayEvents.OnAbilityEnded);
+            }
         }
 
         /// <summary>
@@ -199,6 +211,12 @@ namespace GAS.Runtime
         {
             if (!_abilities.ContainsKey(abilityName)) return;
             _abilities[abilityName].TryCancelAbility();
+            
+            // 发布技能取消事件
+            if (_owner?.EventBus != null)
+            {
+                _owner.PublishAbilityEvent(abilityName, GameplayEvents.OnAbilityCancelled);
+            }
         }
 
         void CancelAbilitiesByTag(GameplayTagSet tags)
